@@ -401,10 +401,9 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.info("No active campaigns available.")
         else:
             camp_lookup = {
-                f\"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})\":
-                    int(row["CAMPAIGNID"])
-                for _, row in campaigns.iterrows()
-            }
+    f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(row["CAMPAIGNID"])
+    for _, row in campaigns.iterrows()
+}
 
             selected_campaign = st.selectbox(
                 "Campaign:",
