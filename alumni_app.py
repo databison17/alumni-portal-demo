@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+
 from db import (
     init_db,
     get_alumni,
@@ -170,7 +171,6 @@ else:  # Student
         ["Alumni Directory"],
     )
 
-
 st.title("Howard University School of Business – Alumni & Student Portal")
 st.caption(
     "Demo: A central place where admins track alumni success, students discover alumni, "
@@ -202,21 +202,89 @@ if page == "Dashboard":
     - **Total Employers** → which companies are hiring our students and alumni.
     - **Active Campaigns** → current fundraising or engagement campaigns.
     - **Total Contributions** → how much alumni have given back overall.
-
-    From here, an admin can:
-    - Identify majors or cohorts to target for outreach.
-    - Measure how successful alumni are in the job market (via the Alumni Directory and Profiles).
-    - Track the impact of alumni giving on specific campaigns.
     """
     )
 
-    st.info(
-        "Tip for presentation: explain that the Dashboard is the admin ‘control center’ "
-        "that summarizes everything else in the portal (Directory, Profiles, Contributions)."
+    # -------- Interactive drill-down section --------
+    st.markdown("### Drill down into the data")
+
+    detail_view = st.radio(
+        "Click a category to see details:",
+        ["Alumni", "Employers", "Campaigns", "Contributions"],
+        horizontal=True,
     )
 
+    if detail_view == "Alumni":
+        st.subheader("All Alumni in the System")
+        alumni_df = get_alumni()
+        st.dataframe(
+            alumni_df[
+                [
+                    "ALUMNIID",
+                    "FIRSTNAME",
+                    "LASTNAME",
+                    "PRIMARYEMAIL",
+                    "ALUM_GRADYEAR",
+                    "GRAD_MAJOR",
+                ]
+            ],
+            use_container_width=True,
+        )
+        st.caption(
+            "Admins can filter/export this list to contact specific cohorts of alumni."
+        )
 
-# ---------- ALUMNI DIRECTORY (STUDENT / ADMIN / ALUMNI) ----------
+    elif detail_view == "Employers":
+        st.subheader("Employers Hiring Our Alumni")
+        from db import get_employer_summary
+
+        emp_summary = get_employer_summary()
+        st.dataframe(emp_summary, use_container_width=True)
+        st.caption(
+            "Shows which employers and industries are most connected to our graduates."
+        )
+
+    elif detail_view == "Campaigns":
+        st.subheader("Fundraising / Engagement Campaigns")
+        from db import get_campaigns
+
+        campaigns = get_campaigns()
+        st.dataframe(
+            campaigns[
+                [
+                    "CAMPAIGNID",
+                    "CAMPAIGNNAME",
+                    "GOALAMOUNT",
+                ]
+            ],
+            use_container_width=True,
+        )
+        st.caption(
+            "Admins can see which campaigns are active and how large each goal is."
+        )
+
+    elif detail_view == "Contributions":
+        st.subheader("Alumni Contributions")
+        from db import get_all_contributions
+
+        contrib = get_all_contributions()
+        st.dataframe(
+            contrib[
+                [
+                    "CONTRIBUTIONDATE",
+                    "FIRSTNAME",
+                    "LASTNAME",
+                    "CAMPAIGNNAME",
+                    "AMOUNT",
+                ]
+            ],
+            use_container_width=True,
+        )
+        st.caption(
+            "Shows who is giving, to which campaigns, and for how much — tying alumni back to impact."
+        )
+
+# ---------- ALUMNI DIRECTORY (ALL ROLES) ----------
 elif page == "Alumni Directory":
     st.header("Alumni Directory")
 
@@ -265,7 +333,7 @@ elif page == "Alumni Directory":
             st.subheader("Alumni Profile")
             render_alumni_profile(int(selected_id))
 
-# ---------- ALUMNI PROFILE (STUDENT / ADMIN) ----------
+# ---------- ALUMNI PROFILE (ADMIN ONLY IN NAV) ----------
 elif page == "Alumni Profile":
     st.header("Alumni Profile")
 
@@ -354,18 +422,51 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 for _, row in campaigns.iterrows()
             }
 
-            label = st.selectbox(
-                "Choose a campaign to support", list(camp_lookup.keys())
+            selected_campaign = st.selectbox(
+                "Campaign:",
+                list(camp_lookup.keys()),
             )
-            amount = st.number_input(
-                "Contribution amount ($)", min_value=10.0, step=10.0
-            )
-            date_str = datetime.date.today().isoformat()
 
-            if st.button("Submit contribution"):
-                create_contribution(int(aid), camp_lookup[label], float(amount), date_str)
+            amount = st.number_input(
+                "Contribution Amount ($)", min_value=5.0, step=5.0
+            )
+
+            st.markdown("---")
+            st.markdown("### Complete Payment via PayPal")
+
+            # TODO: Replace YOUR_PAYPAL_BUSINESS_ID with your real business ID
+            paypal_url = (
+                f"https://www.paypal.com/donate?"
+                f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
+            )
+
+            st.markdown(
+                f"""
+                <a href="{paypal_url}" target="_blank">
+                    <button style="padding:10px 20px; border-radius:8px; background-color:#0070ba; color:white; border:none; font-size:16px;">
+                        Donate with PayPal
+                    </button>
+                </a>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.info(
+                "After you complete the payment in PayPal and return to this page, "
+                "you can record the contribution in the HU database for tracking."
+            )
+
+            # OPTIONAL — record in system after PayPal
+            if st.button("Record Contribution in HU Database"):
+                date_str = datetime.date.today().isoformat()
+                create_contribution(
+                    int(aid),
+                    camp_lookup[selected_campaign],
+                    float(amount),
+                    date_str,
+                )
                 st.success(
-                    "Thank you! Your contribution has been recorded in the alumni database."
+                    "Thank you! Your contribution has been recorded in the database."
                 )
 
                 st.markdown("#### Your contribution history")
