@@ -1,10 +1,18 @@
 import streamlit as st
 import datetime
-import pandas as pd
 
-from db import init_db, get_alumni, get_alumni_by_id, get_degrees_for_alumni, get_employment_for_alumni, get_memberships_for_alumni, get_contributions_for_alumni, get_summary_stats, get_campaigns, create_contribution, update_alumni_contact
+from db import (
+    init_db,
+    get_alumni,
+    get_alumni_by_id,
+    get_degrees_for_alumni,
+    get_employment_for_alumni,
+    get_memberships_for_alumni,
+    get_contributions_for_alumni,
+    get_summary_stats,
+)
 
-# ---- DEMO USERS ----
+# ---- DEMO USERS (you can change or expand this) ----
 VALID_USERS = {
     "admin": {
         "password": "HUSB2024!",
@@ -27,6 +35,7 @@ init_db()
 
 st.set_page_config(page_title="Alumni Subsystem", layout="wide")
 
+
 # ---------- REUSABLE PROFILE RENDERING ----------
 def render_alumni_profile(alumni_id: int):
     """Reusable profile view for any alumni_id."""
@@ -44,12 +53,6 @@ def render_alumni_profile(alumni_id: int):
     st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
     st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
 
-    # LinkedIn profile link
-    if "LINKEDIN" in alum and alum["LINKEDIN"]:
-        st.write(f"**LinkedIn:** [{alum['LINKEDIN']}]({alum['LINKEDIN']})")
-    else:
-        st.write("**LinkedIn:** Not provided")
-
     tab_deg, tab_emp, tab_mem, tab_contrib = st.tabs(
         ["Degrees", "Employment", "Memberships", "Contributions"]
     )
@@ -62,7 +65,14 @@ def render_alumni_profile(alumni_id: int):
         else:
             st.dataframe(
                 deg_df[
-                    ["MAJOR", "MINOR", "SCHOOL", "HONORS", "GRADMONTH", "GRADYEAR"]
+                    [
+                        "MAJOR",
+                        "MINOR",
+                        "SCHOOL",
+                        "HONORS",
+                        "GRADMONTH",
+                        "GRADYEAR",
+                    ]
                 ],
                 use_container_width=True,
             )
@@ -107,21 +117,27 @@ st.sidebar.title("Portal Access")
 
 # ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
+    # 1. Choose role
     role = st.sidebar.selectbox("I am a:", ["Student", "Admin", "Alumni"])
+
+    # 2. Username + password
     username = st.sidebar.text_input(f"{role} username")
     password = st.sidebar.text_input(f"{role} password", type="password")
 
+    # 3. Check credentials
     if st.sidebar.button("Enter portal"):
         user = VALID_USERS.get(username)
 
         if user and user["password"] == password and user["role"] == role:
             st.session_state.user_role = role
             st.session_state.username = username
+            # If this is an alumni account, remember their ALUMNIID
             st.session_state.alumni_id = user.get("alumni_id")
             st.rerun()
         else:
             st.sidebar.error("Invalid credentials for this role. Please try again.")
 
+    # Stop app until logged in
     st.title("Howard University School of Business – Alumni & Student Portal")
     st.caption("Please log in as Student, Admin, or Alumni using the sidebar.")
     st.stop()
@@ -138,7 +154,7 @@ if st.sidebar.button("Log out"):
     st.session_state.alumni_id = None
     st.rerun()
 
-# ---------- ROLE-BASED NAV ----------
+# ---- Role-based navigation ----
 if st.session_state.user_role == "Admin":
     page = st.sidebar.selectbox(
         "Navigate",
@@ -180,19 +196,21 @@ if page == "Dashboard":
         """
     ### How this supports our project goal
 
-    This dashboard gives **administrators** a quick snapshot:
+    This dashboard gives **administrators** a quick snapshot of how the alumni network is doing:
 
-    - **Total Alumni** → how many graduates are being tracked.
-    - **Total Employers** → where alumni are working.
-    - **Active Campaigns** → current fundraising/engagement efforts.
-    - **Total Contributions** → how much alumni have given back.
+    - **Total Alumni** → how many graduates are being tracked in the system.
+    - **Total Employers** → which companies are hiring our students and alumni.
+    - **Active Campaigns** → current fundraising or engagement campaigns.
+    - **Total Contributions** → how much alumni have given back overall.
     """
     )
 
+    # -------- Interactive drill-down section --------
     st.markdown("### Drill down into the data")
+
     detail_view = st.radio(
         "Click a category to see details:",
-        ["Alumni", "Campaigns", "Contributions by Alumni"],
+        ["Alumni", "Employers", "Campaigns", "Contributions"],
         horizontal=True,
     )
 
@@ -212,40 +230,58 @@ if page == "Dashboard":
             ],
             use_container_width=True,
         )
+        st.caption(
+            "Admins can filter/export this list to contact specific cohorts of alumni."
+        )
+
+    elif detail_view == "Employers":
+        st.subheader("Employers Hiring Our Alumni")
+        from db import get_employer_summary
+
+        emp_summary = get_employer_summary()
+        st.dataframe(emp_summary, use_container_width=True)
+        st.caption(
+            "Shows which employers and industries are most connected to our graduates."
+        )
 
     elif detail_view == "Campaigns":
         st.subheader("Fundraising / Engagement Campaigns")
+        from db import get_campaigns
+
         campaigns = get_campaigns()
-        if campaigns.empty:
-            st.info("No active campaigns.")
-        else:
-            st.dataframe(
-                campaigns[["CAMPAIGNID", "CAMPAIGNNAME", "GOALAMOUNT"]],
-                use_container_width=True,
-            )
-
-    elif detail_view == "Contributions by Alumni":
-        st.subheader("Contributions by Alumni")
-        alumni_df = get_alumni()
-        rows = []
-        for _, row in alumni_df.iterrows():
-            aid = int(row["ALUMNIID"])
-            cont_df = get_contributions_for_alumni(aid)
-            total = cont_df["AMOUNT"].sum() if not cont_df.empty else 0.0
-            rows.append(
-                {
-                    "ALUMNIID": aid,
-                    "Name": f"{row['FIRSTNAME']} {row['LASTNAME']}",
-                    "Grad Year": row["ALUM_GRADYEAR"],
-                    "Major": row["GRAD_MAJOR"],
-                    "Total Given ($)": total,
-                }
-            )
-
-        contrib_summary = pd.DataFrame(rows)
-        st.dataframe(contrib_summary, use_container_width=True)
+        st.dataframe(
+            campaigns[
+                [
+                    "CAMPAIGNID",
+                    "CAMPAIGNNAME",
+                    "GOALAMOUNT",
+                ]
+            ],
+            use_container_width=True,
+        )
         st.caption(
-            "Shows which alumni are giving back and how that connects to campaigns."
+            "Admins can see which campaigns are active and how large each goal is."
+        )
+
+    elif detail_view == "Contributions":
+        st.subheader("Alumni Contributions")
+        from db import get_all_contributions
+
+        contrib = get_all_contributions()
+        st.dataframe(
+            contrib[
+                [
+                    "CONTRIBUTIONDATE",
+                    "FIRSTNAME",
+                    "LASTNAME",
+                    "CAMPAIGNNAME",
+                    "AMOUNT",
+                ]
+            ],
+            use_container_width=True,
+        )
+        st.caption(
+            "Shows who is giving, to which campaigns, and for how much — tying alumni back to impact."
         )
 
 # ---------- ALUMNI DIRECTORY (ALL ROLES) ----------
@@ -253,6 +289,7 @@ elif page == "Alumni Directory":
     st.header("Alumni Directory")
 
     alumni_df = get_alumni()
+
     search = st.text_input("Search by last name or major")
 
     if not search:
@@ -269,6 +306,7 @@ elif page == "Alumni Directory":
         else:
             st.write("Select an alumni below to instantly view their profile.")
 
+            # Show results table
             st.dataframe(
                 filtered[
                     [
@@ -283,6 +321,7 @@ elif page == "Alumni Directory":
                 use_container_width=True,
             )
 
+            # Let user pick one result, then render the profile under the table
             selected_id = st.radio(
                 "Choose an alumni to view profile:",
                 filtered["ALUMNIID"],
@@ -294,7 +333,7 @@ elif page == "Alumni Directory":
             st.subheader("Alumni Profile")
             render_alumni_profile(int(selected_id))
 
-# ---------- ALUMNI PROFILE (ADMIN NAV) ----------
+# ---------- ALUMNI PROFILE (ADMIN ONLY IN NAV) ----------
 elif page == "Alumni Profile":
     st.header("Alumni Profile")
 
@@ -336,16 +375,15 @@ elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
                     ["Yes", "No"],
                     index=0 if alum["MAILING_LIST"] == "Yes" else 1,
                 )
-                linkedin = st.text_input(
-                    "LinkedIn Profile URL", value=alum.get("LINKEDIN", "")
-                )
                 submitted = st.form_submit_button("Save changes")
 
             if submitted:
-                update_alumni_contact(int(aid), email, phone, mailing, linkedin)
-                st.success("Profile updated successfully.")
-                st.markdown("### Updated Profile")
-                render_alumni_profile(int(aid))
+                from db import update_alumni_contact  # local import to avoid circular issues
+
+                update_alumni_contact(int(aid), email, phone, mailing)
+                st.success(
+                    "Profile updated successfully. (Stored in the alumni database.)"
+                )
 
             st.markdown("### My Academic & Career Snapshot")
             render_alumni_profile(int(aid))
@@ -357,6 +395,9 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
     if not aid:
         st.error("No alumni record linked to this account (demo config issue).")
     else:
+        from db import get_campaigns, create_contribution
+
+        # Show who is logged in
         alum_df = get_alumni_by_id(aid)
         if not alum_df.empty:
             alum = alum_df.iloc[0]
@@ -393,18 +434,16 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.markdown("---")
             st.markdown("### Complete Payment via PayPal")
 
-            # TODO: replace YOUR_PAYPAL_BUSINESS_ID with your real PayPal ID or donate link
+            # TODO: Replace YOUR_PAYPAL_BUSINESS_ID with your real business ID
             paypal_url = (
-                "https://www.paypal.com/donate"
-                f"?amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
+                f"https://www.paypal.com/donate?"
+                f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
             )
 
             st.markdown(
                 f"""
                 <a href="{paypal_url}" target="_blank">
-                    <button style="padding:10px 20px; border-radius:8px;
-                                   background-color:#0070ba; color:white;
-                                   border:none; font-size:16px;">
+                    <button style="padding:10px 20px; border-radius:8px; background-color:#0070ba; color:white; border:none; font-size:16px;">
                         Donate with PayPal
                     </button>
                 </a>
@@ -417,6 +456,7 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 "you can record the contribution in the HU database for tracking."
             )
 
+            # OPTIONAL — record in system after PayPal
             if st.button("Record Contribution in HU Database"):
                 date_str = datetime.date.today().isoformat()
                 create_contribution(
@@ -430,4 +470,4 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 )
 
                 st.markdown("#### Your contribution history")
-                render_alumni_profile(int(aid))
+                render_alumni_profile(int(aid))  # shows updated Contributions tab
