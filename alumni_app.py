@@ -104,7 +104,6 @@ st.sidebar.title("Portal Access")
 
 # ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
-    
 if "alumni_id" not in st.session_state:
     st.session_state.alumni_id = None
 
