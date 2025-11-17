@@ -37,6 +37,7 @@ st.set_page_config(page_title="Alumni Subsystem", layout="wide")
 
 
 # ---------- REUSABLE PROFILE RENDERING ----------
+# ---------- REUSABLE PROFILE RENDERING ----------
 def render_alumni_profile(alumni_id: int):
     """Reusable profile view for any alumni_id."""
     alum_df = get_alumni_by_id(alumni_id)
@@ -44,6 +45,7 @@ def render_alumni_profile(alumni_id: int):
         st.error("Alumni not found.")
         return
 
+    # alum is defined right here
     alum = alum_df.iloc[0]
 
     st.subheader(f"{alum['FIRSTNAME']} {alum['LASTNAME']}")
@@ -53,11 +55,11 @@ def render_alumni_profile(alumni_id: int):
     st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
     st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
 
-# LinkedIn profile link
-if alum.get("LINKEDIN"):
-    st.write(f"**LinkedIn:** [{alum['LINKEDIN']}]({alum['LINKEDIN']})")
-else:
-    st.write("**LinkedIn:** Not provided")
+    # 🔗 LinkedIn profile link (NEW)
+    if "LINKEDIN" in alum and alum["LINKEDIN"]:
+        st.write(f"**LinkedIn:** [{alum['LINKEDIN']}]({alum['LINKEDIN']})")
+    else:
+        st.write("**LinkedIn:** Not provided")
 
     tab_deg, tab_emp, tab_mem, tab_contrib = st.tabs(
         ["Degrees", "Employment", "Memberships", "Contributions"]
@@ -71,14 +73,7 @@ else:
         else:
             st.dataframe(
                 deg_df[
-                    [
-                        "MAJOR",
-                        "MINOR",
-                        "SCHOOL",
-                        "HONORS",
-                        "GRADMONTH",
-                        "GRADYEAR",
-                    ]
+                    ["MAJOR", "MINOR", "SCHOOL", "HONORS", "GRADMONTH", "GRADYEAR"]
                 ],
                 use_container_width=True,
             )
