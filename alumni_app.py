@@ -14,14 +14,43 @@ from db import (
 init_db()
 
 st.set_page_config(page_title="Alumni Subsystem", layout="wide")
-st.title("Howard University School of Business – Alumni & Student Portal")
 
+# ---- Simple role-based "login" ----
+if "user_role" not in st.session_state:
+    st.session_state.user_role = None
+
+st.sidebar.title("Portal Access")
+
+if st.session_state.user_role is None:
+    role = st.sidebar.selectbox("I am a:", ["Student", "Admin"])
+    if st.sidebar.button("Enter portal"):
+        st.session_state.user_role = role
+        st.experimental_rerun()
+    # If not logged in yet, stop here
+    st.title("Howard University School of Business – Alumni & Student Portal")
+    st.caption("Please choose Student or Admin in the sidebar to enter the portal.")
+    st.stop()
+else:
+    st.sidebar.write(f"Logged in as **{st.session_state.user_role}**")
+    if st.sidebar.button("Log out"):
+        st.session_state.user_role = None
+        st.experimental_rerun()
+
+# ---- Role-based navigation ----
+if st.session_state.user_role == "Admin":
+    page = st.sidebar.selectbox(
+        "Navigate",
+        ["Dashboard", "Alumni Directory", "Alumni Profile"],
+    )
+else:  # Student
+    page = st.sidebar.selectbox(
+        "Navigate",
+        ["Alumni Directory", "Alumni Profile"],
+    )
+
+st.title("Howard University School of Business – Alumni & Student Portal")
 st.caption("Demo: A central place where admins track alumni success and students can see alumni profiles.")
 
-page = st.sidebar.selectbox(
-    "Navigate",
-    ["Dashboard", "Alumni Directory", "Alumni Profile"]
-)
 
 # ---------- DASHBOARD ----------
 if page == "Dashboard":
@@ -49,21 +78,24 @@ elif page == "Alumni Directory":
 
     search = st.text_input("Search by last name or major")
 
-    if search:
+    if not search:
+        st.info("Enter a last name or major to search for alumni.")
+    else:
         mask = (
             alumni_df["LASTNAME"].str.contains(search, case=False, na=False)
             | alumni_df["GRAD_MAJOR"].str.contains(search, case=False, na=False)
         )
         filtered = alumni_df[mask]
-    else:
-        filtered = alumni_df
 
-    st.write("Click an AlumniID, then go to **Alumni Profile** to view details.")
-    st.dataframe(
-        filtered[["ALUMNIID", "FIRSTNAME", "LASTNAME",
-                  "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR", "MAILING_LIST"]],
-        use_container_width=True
-    )
+        if filtered.empty:
+            st.warning("No alumni found matching that search.")
+        else:
+            st.write("Click an AlumniID, then go to **Alumni Profile** to view details.")
+            st.dataframe(
+                filtered[["ALUMNIID", "FIRSTNAME", "LASTNAME",
+                          "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR", "MAILING_LIST"]],
+                use_container_width=True
+            )
 
 # ---------- ALUMNI PROFILE ----------
 elif page == "Alumni Profile":
