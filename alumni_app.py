@@ -53,6 +53,10 @@ def render_alumni_profile(alumni_id: int):
     st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
     st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
 
+    # Optional LinkedIn link – safe even if column does not exist
+    if "LINKEDIN" in alum and alum["LINKEDIN"]:
+        st.markdown(f"[Connect on LinkedIn]({alum['LINKEDIN']})")
+
     tab_deg, tab_emp, tab_mem, tab_contrib = st.tabs(
         ["Degrees", "Employment", "Memberships", "Contributions"]
     )
@@ -194,15 +198,15 @@ if page == "Dashboard":
 
     st.markdown(
         """
-    ### How this supports our project goal
+### How this supports our project goal
 
-    This dashboard gives **administrators** a quick snapshot of how the alumni network is doing:
+This dashboard gives **administrators** a quick snapshot of how the alumni network is doing:
 
-    - **Total Alumni** → how many graduates are being tracked in the system.
-    - **Total Employers** → which companies are hiring our students and alumni.
-    - **Active Campaigns** → current fundraising or engagement campaigns.
-    - **Total Contributions** → how much alumni have given back overall.
-    """
+- **Total Alumni** -> how many graduates are being tracked in the system.
+- **Total Employers** -> which companies are hiring our students and alumni.
+- **Active Campaigns** -> current fundraising or engagement campaigns.
+- **Total Contributions** -> how much alumni have given back overall.
+"""
     )
 
     # -------- Interactive drill-down section --------
@@ -231,7 +235,7 @@ if page == "Dashboard":
             use_container_width=True,
         )
         st.caption(
-            "Admins can filter/export this list to contact specific cohorts of alumni."
+            "Admins can filter or export this list to contact specific cohorts of alumni."
         )
 
     elif detail_view == "Employers":
@@ -434,20 +438,20 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.markdown("---")
             st.markdown("### Complete Payment via PayPal")
 
-            # TODO: Replace YOUR_PAYPAL_BUSINESS_ID with your real business ID
+            # TODO: replace YOUR_PAYPAL_BUSINESS_ID with a real ID
             paypal_url = (
-                f"https://www.paypal.com/donate?"
+                "https://www.paypal.com/donate?"
                 f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
             )
 
             st.markdown(
                 f"""
-                <a href="{paypal_url}" target="_blank">
-                    <button style="padding:10px 20px; border-radius:8px; background-color:#0070ba; color:white; border:none; font-size:16px;">
-                        Donate with PayPal
-                    </button>
-                </a>
-                """,
+<a href="{paypal_url}" target="_blank">
+    <button style="padding:10px 20px; border-radius:8px; background-color:#0070ba; color:white; border:none; font-size:16px;">
+        Donate with PayPal
+    </button>
+</a>
+""",
                 unsafe_allow_html=True,
             )
 
@@ -456,7 +460,6 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 "you can record the contribution in the HU database for tracking."
             )
 
-            # OPTIONAL — record in system after PayPal
             if st.button("Record Contribution in HU Database"):
                 date_str = datetime.date.today().isoformat()
                 create_contribution(
@@ -470,4 +473,4 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 )
 
                 st.markdown("#### Your contribution history")
-                render_alumni_profile(int(aid))  # shows updated Contributions tab
+                render_alumni_profile(int(aid))
