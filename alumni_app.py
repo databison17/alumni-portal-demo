@@ -37,7 +37,6 @@ st.set_page_config(page_title="Alumni Subsystem", layout="wide")
 
 
 # ---------- REUSABLE PROFILE RENDERING ----------
-# ---------- REUSABLE PROFILE RENDERING ----------
 def render_alumni_profile(alumni_id: int):
     """Reusable profile view for any alumni_id."""
     alum_df = get_alumni_by_id(alumni_id)
@@ -104,6 +103,7 @@ def render_alumni_profile(alumni_id: int):
             st.dataframe(cont_df, use_container_width=True)
             total = cont_df["AMOUNT"].sum()
             st.write(f"**Total given by this alumni:** ${total:,.2f}")
+
 
 
 # ---------- SESSION STATE FOR LOGIN ----------
