@@ -1,4 +1,5 @@
 import streamlit as st
+import datetime
 from db import (
     init_db,
     get_alumni,
@@ -287,3 +288,70 @@ elif page == "Alumni Profile":
             st.dataframe(cont_df, use_container_width=True)
             total = cont_df["AMOUNT"].sum()
             st.write(f"**Total given by this alumni:** ${total:,.2f}")
+
+# ---------- ALUMNI PAGES ----------
+elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
+    st.header("My Alumni Profile & Updates")
+
+    aid = st.session_state.alumni_id
+    if not aid:
+        st.error("No alumni record linked to this account (demo config issue).")
+    else:
+        alum_df = get_alumni_by_id(aid)
+        if alum_df.empty:
+            st.error("No alumni data found for this login.")
+        else:
+            alum = alum_df.iloc[0]
+
+            st.subheader("Current Profile")
+            st.write(f"**Name:** {alum['FIRSTNAME']} {alum['LASTNAME']}")
+            st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
+            st.write(f"**Major:** {alum['GRAD_MAJOR']}")
+
+            st.markdown("### Update Contact Information")
+            with st.form("update_contact"):
+                email = st.text_input("Email", value=alum["PRIMARYEMAIL"])
+                phone = st.text_input("Phone", value=alum["PHONE"])
+                mailing = st.selectbox(
+                    "Mailing list opt-in",
+                    ["Yes", "No"],
+                    index=0 if alum["MAILING_LIST"] == "Yes" else 1
+                )
+                submitted = st.form_submit_button("Save changes")
+
+            if submitted:
+                from db import update_alumni_contact  # local import to avoid circular issues
+                update_alumni_contact(int(aid), email, phone, mailing)
+                st.success("Profile updated successfully. (Stored in the alumni database.)")
+
+            st.markdown("### My Academic & Career Snapshot")
+            render_alumni_profile(int(aid))
+
+elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
+    st.header("Make a Contribution")
+
+    aid = st.session_state.alumni_id
+    if not aid:
+        st.error("No alumni record linked to this account (demo config issue).")
+    else:
+        from db import get_campaigns, create_contribution
+        campaigns = get_campaigns()
+        if campaigns.empty:
+            st.info("No active campaigns available.")
+        else:
+            camp_lookup = {
+                f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(row["CAMPAIGNID"])
+                for _, row in campaigns.iterrows()
+            }
+
+            label = st.selectbox("Choose a campaign to support", list(camp_lookup.keys()))
+            amount = st.number_input("Contribution amount ($)", min_value=10.0, step=10.0)
+            date_str = datetime.date.today().isoformat()
+
+            if st.button("Submit contribution"):
+                create_contribution(int(aid), camp_lookup[label], float(amount), date_str)
+                st.success("Thank you! Your contribution has been recorded in the database.")
+
+                # Optionally show updated contributions
+                st.markdown("#### Your contribution history")
+                render_alumni_profile(int(aid))  # shows updated Contributions tab
