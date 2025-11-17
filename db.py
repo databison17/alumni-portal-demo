@@ -169,50 +169,54 @@ def get_alumni():
     return pd.read_sql("SELECT * FROM ALUMNI", engine)
 
 def get_alumni_by_id(alumni_id: int):
-    return pd.read_sql("SELECT * FROM ALUMNI WHERE ALUMNIID = ?", engine, params=[alumni_id])
+    sql = text("SELECT * FROM ALUMNI WHERE ALUMNIID = :aid")
+    return pd.read_sql(sql, engine, params={"aid": int(alumni_id)})
 
 def get_degrees_for_alumni(alumni_id: int):
-    return pd.read_sql("SELECT * FROM DEGREE WHERE ALUMNIID = ?", engine, params=[alumni_id])
+    sql = text("SELECT * FROM DEGREE WHERE ALUMNIID = :aid")
+    return pd.read_sql(sql, engine, params={"aid": int(alumni_id)})
 
 def get_employment_for_alumni(alumni_id: int):
-    query = """
+    sql = text("""
         SELECT e.JOBTITLE, e.DEPARTMENT, e.EMP_STARTDATE,
                emp.EMPLOYERNAME, emp.INDUSTRY,
                emp.HQ_CITY, emp.HQ_STATE, emp.HQ_COUNTRY
         FROM EMPLOYMENT e
         JOIN EMPLOYER emp ON e.EMPLOYERID = emp.EMPLOYERID
-        WHERE e.ALUMNIID = ?
-    """
-    return pd.read_sql(query, engine, params=[alumni_id])
+        WHERE e.ALUMNIID = :aid
+    """)
+    return pd.read_sql(sql, engine, params={"aid": int(alumni_id)})
 
 def get_memberships_for_alumni(alumni_id: int):
-    query = """
+    sql = text("""
         SELECT aa.ASSOCIATIONNAME, aa.CHAPTERREGION,
                am.MEM_STARTDATE, am.MEM_ENDDATE,
                am.MEM_STATUS, am.MEM_ROLE
         FROM ALUMNIMEMBERSHIP am
         JOIN ALUMNIASSOCIATION aa
           ON am.ASSOCIATIONID = aa.ASSOCIATIONID
-        WHERE am.ALUMNIID = ?
-    """
-    return pd.read_sql(query, engine, params=[alumni_id])
+        WHERE am.ALUMNIID = :aid
+    """)
+    return pd.read_sql(sql, engine, params={"aid": int(alumni_id)})
 
 def get_contributions_for_alumni(alumni_id: int):
-    query = """
+    sql = text("""
         SELECT c.CONTRIBUTIONDATE, c.AMOUNT,
                camp.CAMPAIGNNAME
         FROM CONTRIBUTION c
         JOIN CAMPAIGN camp ON c.CAMPAIGNID = camp.CAMPAIGNID
-        WHERE c.ALUMNIID = ?
-    """
-    return pd.read_sql(query, engine, params=[alumni_id])
+        WHERE c.ALUMNIID = :aid
+    """)
+    return pd.read_sql(sql, engine, params={"aid": int(alumni_id)})
 
 def get_summary_stats():
     stats = {}
-    stats["total_alumni"] = pd.read_sql("SELECT COUNT(*) AS cnt FROM ALUMNI", engine)["cnt"][0]
-    stats["total_employers"] = pd.read_sql("SELECT COUNT(*) AS cnt FROM EMPLOYER", engine)["cnt"][0]
-    stats["total_campaigns"] = pd.read_sql("SELECT COUNT(*) AS cnt FROM CAMPAIGN", engine)["cnt"][0]
-    stats["total_contributions"] = float(
-        pd.read_sql("SELECT COALESCE(SUM(AMOUNT),0) AS total FROM CONTRIBUTION", engine)["total"][0]
-    )
+    stats["total_alumni"] = pd.read_sql(
+        "SELECT COUNT(*) AS cnt FROM ALUMNI", engine)["cnt"][0]
+    stats["total_employers"] = pd.read_sql(
+        "SELECT COUNT(*) AS cnt FROM EMPLOYER", engine)["cnt"][0]
+    stats["total_campaigns"] = pd.read_sql(
+        "SELECT COUNT(*) AS cnt FROM CAMPAIGN", engine)["cnt"][0]
+    stats["total_contributions"] = float(pd.read_sql(
+        "SELECT COALESCE(SUM(AMOUNT),0) AS total FROM CONTRIBUTION", engine)["total"][0])
     return stats
