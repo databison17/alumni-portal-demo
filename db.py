@@ -220,3 +220,35 @@ def get_summary_stats():
     stats["total_contributions"] = float(pd.read_sql(
         "SELECT COALESCE(SUM(AMOUNT),0) AS total FROM CONTRIBUTION", engine)["total"][0])
     return stats
+
+
+def update_alumni_contact(alumni_id: int, email: str, phone: str, mailing_list: str):
+    with engine.begin() as conn:
+        sql = text("""
+            UPDATE ALUMNI
+            SET PRIMARYEMAIL = :email,
+                PHONE = :phone,
+                MAILING_LIST = :ml
+            WHERE ALUMNIID = :aid
+        """)
+        conn.execute(sql, {"email": email, "phone": phone, "ml": mailing_list, "aid": alumni_id})
+
+def get_campaigns():
+    return pd.read_sql("SELECT * FROM CAMPAIGN", engine)
+
+def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_str: str):
+    with engine.begin() as conn:
+        next_id = conn.execute(
+            text("SELECT COALESCE(MAX(CONTRIBUTIONID), 9000) + 1 AS nid FROM CONTRIBUTION")
+        ).scalar()
+        sql = text("""
+            INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
+            VALUES (:cid, :aid, :camp, :cdate, :amt)
+        """)
+        conn.execute(sql, {
+            "cid": int(next_id),
+            "aid": int(alumni_id),
+            "camp": int(campaign_id),
+            "cdate": date_str,
+            "amt": float(amount)
+        })
