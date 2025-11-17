@@ -225,6 +225,34 @@ def update_alumni_contact(aid: int, email: str, phone: str, mailing: str):
 
 
 # ========= CONTRIBUTION INSERT =========
+def ensure_linkedin_column_and_demo_data():
+    """Make sure ALUMNI has a LINKEDIN column and a demo URL for Maya."""
+    with engine.begin() as conn:
+        # 1. Check existing columns
+        cols = conn.execute(text("PRAGMA table_info(ALUMNI);")).fetchall()
+        col_names = [c[1] for c in cols]
+
+        # 2. If LINKEDIN column doesn't exist yet, add it
+        if "LINKEDIN" not in col_names:
+            conn.execute(text("ALTER TABLE ALUMNI ADD COLUMN LINKEDIN TEXT;"))
+
+        # 3. Give Maya Johnson (ALUMNIID 1001) a demo LinkedIn URL if blank
+        conn.execute(text("""
+            UPDATE ALUMNI
+            SET LINKEDIN = 'https://www.linkedin.com/in/maya-johnson-demo'
+            WHERE ALUMNIID = 1001
+              AND (LINKEDIN IS NULL OR LINKEDIN = '');
+        """))
+
+def init_db():
+    """Create tables and insert demo records if they do not exist."""
+    with engine.begin() as conn:
+        # ... all your CREATE TABLE statements here ...
+        # ... call seed_demo_data() or your seeding logic ...
+
+    # 🔹 Add this line just once, outside the with-block:
+    ensure_linkedin_column_and_demo_data()
+
 def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_str: str):
     with engine.begin() as conn:
         next_id = conn.execute(
