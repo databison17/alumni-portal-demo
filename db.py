@@ -242,20 +242,38 @@ def update_alumni_contact(alumni_id: int, email: str, phone: str, mailing_list: 
 def get_campaigns():
     return pd.read_sql("SELECT * FROM CAMPAIGN", engine)
 
+
 def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_str: str):
+    """Insert a new contribution record."""
     with engine.begin() as conn:
         next_id = conn.execute(
             text("SELECT COALESCE(MAX(CONTRIBUTIONID), 9000) + 1 AS nid FROM CONTRIBUTION")
         ).scalar()
+
         sql = text("""
-            INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
-            VALUES (:cid, :aid, :camp, :cdate, :amt)
+            INSERT INTO CONTRIBUTION (
+                CONTRIBUTIONID,
+                ALUMNIID,
+                CAMPAIGNID,
+                CONTRIBUTIONDATE,
+                AMOUNT
+            )
+            VALUES (
+                :cid,
+                :aid,
+                :camp,
+                :cdate,
+                :amt
+            )
         """)
-        
-        conn.execute(sql, {
-            "cid": int(next_id),
-            "aid": int(alumni_id),
-            "camp": int(campaign_id),
-            "cdate": date_str,
-            "amt": float(amount)
-        })
+
+        conn.execute(
+            sql,
+            {
+                "cid": int(next_id),
+                "aid": int(alumni_id),
+                "camp": int(campaign_id),
+                "cdate": date_str,
+                "amt": float(amount),
+            },
+        )
