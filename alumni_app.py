@@ -95,6 +95,8 @@ def render_alumni_profile(alumni_id: int):
 # ---------- SESSION STATE FOR LOGIN ----------
 if "user_role" not in st.session_state:
     st.session_state.user_role = None
+if "alumni_id" not in st.session_state:
+    st.session_state.alumni_id = None
 if "username" not in st.session_state:
     st.session_state.username = ""
 
@@ -102,6 +104,7 @@ st.sidebar.title("Portal Access")
 
 # ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
+    
 if "alumni_id" not in st.session_state:
     st.session_state.alumni_id = None
 
