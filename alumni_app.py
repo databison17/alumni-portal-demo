@@ -9,32 +9,67 @@ from db import (
     get_contributions_for_alumni,
     get_summary_stats,
 )
+# ---- DEMO USERS (you can change or expand this) ----
+VALID_USERS = {
+    "admin": {
+        "password": "HUSB2024!",
+        "role": "Admin"
+    },
+    "mily.lopez@bison.howard.edu": {
+        "password": "001234567",
+        "role": "Student"
+    }
+}
 
 # Ensure DB and sample data exist
 init_db()
 
 st.set_page_config(page_title="Alumni Subsystem", layout="wide")
 
-# ---- Simple role-based "login" ----
+# ---------- SESSION STATE FOR LOGIN ----------
 if "user_role" not in st.session_state:
     st.session_state.user_role = None
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
 st.sidebar.title("Portal Access")
 
+# ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
+
+    # 1. Choose Student or Admin
     role = st.sidebar.selectbox("I am a:", ["Student", "Admin"])
+
+    # 2. Real login fields (username + password)
+    username = st.sidebar.text_input(f"{role} username")
+    password = st.sidebar.text_input(f"{role} password", type="password")
+
+    # 3. Check credentials
     if st.sidebar.button("Enter portal"):
-        st.session_state.user_role = role
-        st.experimental_rerun()
-    # If not logged in yet, stop here
+        user = VALID_USERS.get(username)
+
+        if user and user["password"] == password and user["role"] == role:
+            st.session_state.user_role = role
+            st.session_state.username = username
+            st.rerun()
+        else:
+            st.sidebar.error("Invalid credentials for this role. Try again.")
+
+    # Stop the app until logged in
     st.title("Howard University School of Business – Alumni & Student Portal")
-    st.caption("Please choose Student or Admin in the sidebar to enter the portal.")
+    st.caption("Please log in as Student or Admin using the sidebar.")
     st.stop()
-else:
-    st.sidebar.write(f"Logged in as **{st.session_state.user_role}**")
-    if st.sidebar.button("Log out"):
-        st.session_state.user_role = None
-        st.experimental_rerun()
+
+# ---------- LOGGED IN VIEW ----------
+st.sidebar.write(
+    f"Logged in as **{st.session_state.user_role}**"
+    + (f" ({st.session_state.username})" if st.session_state.username else "")
+)
+
+if st.sidebar.button("Log out"):
+    st.session_state.user_role = None
+    st.session_state.username = ""
+    st.rerun()
 
 # ---- Role-based navigation ----
 if st.session_state.user_role == "Admin":
