@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import pandas as pd
 
 from db import (
     init_db,
@@ -10,6 +11,9 @@ from db import (
     get_memberships_for_alumni,
     get_contributions_for_alumni,
     get_summary_stats,
+    get_campaigns,
+    create_contribution,
+    update_alumni_contact,
 )
 
 # ---- DEMO USERS ----
@@ -147,7 +151,7 @@ if st.sidebar.button("Log out"):
     st.session_state.alumni_id = None
     st.rerun()
 
-# Role-based navigation
+# ---------- ROLE-BASED NAV ----------
 if st.session_state.user_role == "Admin":
     page = st.sidebar.selectbox(
         "Navigate",
@@ -189,20 +193,19 @@ if page == "Dashboard":
         """
     ### How this supports our project goal
 
-    This dashboard gives **administrators** a quick snapshot of how the alumni network is doing:
+    This dashboard gives **administrators** a quick snapshot:
 
-    - **Total Alumni** → how many graduates are being tracked in the system.
-    - **Total Employers** → which companies are hiring our students and alumni.
-    - **Active Campaigns** → current fundraising or engagement campaigns.
-    - **Total Contributions** → how much alumni have given back overall.
+    - **Total Alumni** → how many graduates are being tracked.
+    - **Total Employers** → where alumni are working.
+    - **Active Campaigns** → current fundraising/engagement efforts.
+    - **Total Contributions** → how much alumni have given back.
     """
     )
 
-    # Interactive drill-down
     st.markdown("### Drill down into the data")
     detail_view = st.radio(
         "Click a category to see details:",
-        ["Alumni", "Employers", "Campaigns", "Contributions"],
+        ["Alumni", "Campaigns", "Contributions by Alumni"],
         horizontal=True,
     )
 
@@ -222,52 +225,40 @@ if page == "Dashboard":
             ],
             use_container_width=True,
         )
-        st.caption(
-            "Admins can filter/export this list to contact specific cohorts of alumni."
-        )
-
-    elif detail_view == "Employers":
-        st.subheader("Employers Hiring Our Alumni")
-        from db import get_employer_summary
-
-        emp_summary = get_employer_summary()
-        st.dataframe(emp_summary, use_container_width=True)
-        st.caption(
-            "Shows which employers and industries are most connected to our graduates."
-        )
 
     elif detail_view == "Campaigns":
         st.subheader("Fundraising / Engagement Campaigns")
-        from db import get_campaigns
-
         campaigns = get_campaigns()
-        st.dataframe(
-            campaigns[["CAMPAIGNID", "CAMPAIGNNAME", "GOALAMOUNT"]],
-            use_container_width=True,
-        )
-        st.caption(
-            "Admins can see which campaigns are active and how large each goal is."
-        )
+        if campaigns.empty:
+            st.info("No active campaigns.")
+        else:
+            st.dataframe(
+                campaigns[["CAMPAIGNID", "CAMPAIGNNAME", "GOALAMOUNT"]],
+                use_container_width=True,
+            )
 
-    elif detail_view == "Contributions":
-        st.subheader("Alumni Contributions")
-        from db import get_all_contributions
+    elif detail_view == "Contributions by Alumni":
+        st.subheader("Contributions by Alumni")
+        alumni_df = get_alumni()
+        rows = []
+        for _, row in alumni_df.iterrows():
+            aid = int(row["ALUMNIID"])
+            cont_df = get_contributions_for_alumni(aid)
+            total = cont_df["AMOUNT"].sum() if not cont_df.empty else 0.0
+            rows.append(
+                {
+                    "ALUMNIID": aid,
+                    "Name": f"{row['FIRSTNAME']} {row['LASTNAME']}",
+                    "Grad Year": row["ALUM_GRADYEAR"],
+                    "Major": row["GRAD_MAJOR"],
+                    "Total Given ($)": total,
+                }
+            )
 
-        contrib = get_all_contributions()
-        st.dataframe(
-            contrib[
-                [
-                    "CONTRIBUTIONDATE",
-                    "FIRSTNAME",
-                    "LASTNAME",
-                    "CAMPAIGNNAME",
-                    "AMOUNT",
-                ]
-            ],
-            use_container_width=True,
-        )
+        contrib_summary = pd.DataFrame(rows)
+        st.dataframe(contrib_summary, use_container_width=True)
         st.caption(
-            "Shows who is giving, to which campaigns, and for how much — tying alumni back to impact."
+            "Shows which alumni are giving back and how that connects to campaigns."
         )
 
 # ---------- ALUMNI DIRECTORY (ALL ROLES) ----------
@@ -364,8 +355,6 @@ elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
                 submitted = st.form_submit_button("Save changes")
 
             if submitted:
-                from db import update_alumni_contact
-
                 update_alumni_contact(int(aid), email, phone, mailing, linkedin)
                 st.success("Profile updated successfully.")
                 st.markdown("### Updated Profile")
@@ -381,8 +370,6 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
     if not aid:
         st.error("No alumni record linked to this account (demo config issue).")
     else:
-        from db import get_campaigns, create_contribution
-
         alum_df = get_alumni_by_id(aid)
         if not alum_df.empty:
             alum = alum_df.iloc[0]
@@ -401,9 +388,11 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.info("No active campaigns available.")
         else:
             camp_lookup = {
-    f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(row["CAMPAIGNID"])
-    for _, row in campaigns.iterrows()
-}
+                f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(
+                    row["CAMPAIGNID"]
+                )
+                for _, row in campaigns.iterrows()
+            }
 
             selected_campaign = st.selectbox(
                 "Campaign:",
@@ -419,8 +408,8 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
 
             # TODO: replace YOUR_PAYPAL_BUSINESS_ID with your real PayPal ID or donate link
             paypal_url = (
-                f"https://www.paypal.com/donate?"
-                f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
+                "https://www.paypal.com/donate"
+                f"?amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
             )
 
             st.markdown(
