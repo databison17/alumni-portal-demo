@@ -12,15 +12,17 @@ def init_db():
         # Create tables (compatible with SQLite)
         conn.exec_driver_sql("""
         CREATE TABLE IF NOT EXISTS ALUMNI (
-            ALUMNIID      INTEGER PRIMARY KEY,
-            FIRSTNAME     TEXT NOT NULL,
-            LASTNAME      TEXT NOT NULL,
-            PRIMARYEMAIL  TEXT NOT NULL,
-            PHONE         TEXT NOT NULL,
-            ALUM_GRADYEAR INTEGER NOT NULL,
-            GRAD_MAJOR    TEXT NOT NULL,
-            MAILING_LIST  TEXT NOT NULL
-        );
+    ALUMNIID INTEGER PRIMARY KEY,
+    FIRSTNAME TEXT NOT NULL,
+    LASTNAME TEXT NOT NULL,
+    PRIMARYEMAIL TEXT NOT NULL,
+    PHONE TEXT NOT NULL,
+    ALUM_GRADYEAR INTEGER NOT NULL,
+    GRAD_MAJOR TEXT NOT NULL,
+    MAILING_LIST TEXT DEFAULT "No",
+    LINKEDIN TEXT
+);
+
         """)
 
         conn.exec_driver_sql("""
@@ -113,12 +115,16 @@ def init_db():
         if count == 0:
             conn.exec_driver_sql("""
             INSERT INTO ALUMNI VALUES
-            (1001, 'Maya', 'Johnson', 'maya.johnson@email.com', '202-555-7821', 2018, 'Finance','Yes'),
-            (1002, 'Jordan', 'Smith', 'jordan.smith@email.com', '404-555-6719', 2019, 'Marketing','No'),
-            (1003, 'Amira', 'Patel', 'amira.patel@email.com', '312-555-2190', 2020, 'Computer Information Systems','Yes'),
-            (1004, 'Isaiah', 'Thompson','isaiah.thompson@email.com', '443-555-9898', 2017, 'Finance','Yes'),
-            (1005, 'Nia', 'Brown', 'nia.brown@email.com', '703-555-3104', 2021, 'Supply Chain','Yes');
-            """)
+(1001, 'Maya', 'Johnson', 'maya.johnson@email.com', '202-555-7821', 2018, 'Finance', 'Yes',
+ 'https://www.linkedin.com/in/mayajohnson'),
+(1002, 'Jordan', 'Smith', 'jordan.smith@email.com', '404-555-6719', 2019, 'Marketing', 'Yes',
+ 'https://www.linkedin.com/in/jordansmith'),
+(1003, 'Amira', 'Patel', 'amira.patel@email.com', '312-555-2190', 2020, 'Computer Information Systems', 'No',
+ 'https://www.linkedin.com/in/amirapatel'),
+(1004, 'Isaiah', 'Thompson', 'isaiah.thompson@email.com', '443-555-9980', 2017, 'Finance', 'Yes',
+ 'https://www.linkedin.com/in/isaiahthompson'),
+(1005, 'Nia', 'Brown', 'nia.brown@email.com', '703-555-3104', 2021, 'Supply Chain', 'Yes',
+ 'https://www.linkedin.com/in/niabrown');
 
             conn.exec_driver_sql("""
             INSERT INTO DEGREE VALUES
