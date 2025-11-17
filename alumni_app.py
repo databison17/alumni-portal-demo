@@ -18,6 +18,12 @@ VALID_USERS = {
     "mily.lopez@bison.howard.edu": {
         "password": "001234567",
         "role": "Student"
+    },
+    # Example alumni user mapped to ALUMNIID 1001 (Maya Johnson)
+    "maya.johnson@email.com": {
+        "password": "Maya2024!",
+        "role": "Alumni",
+        "alumni_id": 1001
     }
 }
 
@@ -25,6 +31,65 @@ VALID_USERS = {
 init_db()
 
 st.set_page_config(page_title="Alumni Subsystem", layout="wide")
+
+def render_alumni_profile(alumni_id: int):
+    """Reusable profile view for any alumni_id."""
+    alum_df = get_alumni_by_id(alumni_id)
+    if alum_df.empty:
+        st.error("Alumni not found.")
+        return
+
+    alum = alum_df.iloc[0]
+
+    st.subheader(f"{alum['FIRSTNAME']} {alum['LASTNAME']}")
+    st.write(f"**Email:** {alum['PRIMARYEMAIL']}")
+    st.write(f"**Phone:** {alum['PHONE']}")
+    st.write(f"**Major:** {alum['GRAD_MAJOR']}")
+    st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
+    st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
+
+    tab_deg, tab_emp, tab_mem, tab_contrib = st.tabs(
+        ["Degrees", "Employment", "Memberships", "Contributions"]
+    )
+
+    with tab_deg:
+        st.subheader("Academic Degrees")
+        deg_df = get_degrees_for_alumni(alumni_id)
+        if deg_df.empty:
+            st.info("No degree records for this alumni yet.")
+        else:
+            st.dataframe(
+                deg_df[["MAJOR", "MINOR", "SCHOOL", "HONORS", "GRADMONTH", "GRADYEAR"]],
+                use_container_width=True,
+            )
+
+    with tab_emp:
+        st.subheader("Employment History")
+        emp_df = get_employment_for_alumni(alumni_id)
+        if emp_df.empty:
+            st.info("No employment records for this alumni yet.")
+        else:
+            st.dataframe(emp_df, use_container_width=True)
+            st.markdown("_This highlights alumni success in the job market._")
+
+    with tab_mem:
+        st.subheader("Alumni Association Memberships")
+        mem_df = get_memberships_for_alumni(alumni_id)
+        if mem_df.empty:
+            st.info("No memberships on record.")
+        else:
+            st.dataframe(mem_df, use_container_width=True)
+
+    with tab_contrib:
+        st.subheader("Contributions")
+        cont_df = get_contributions_for_alumni(alumni_id)
+        if cont_df.empty:
+            st.info("No contributions on record.")
+        else:
+            st.dataframe(cont_df, use_container_width=True)
+            total = cont_df["AMOUNT"].sum()
+            st.write(f"**Total given by this alumni:** ${total:,.2f}")
+
 
 # ---------- SESSION STATE FOR LOGIN ----------
 if "user_role" not in st.session_state:
@@ -36,6 +101,8 @@ st.sidebar.title("Portal Access")
 
 # ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
+if "alumni_id" not in st.session_state:
+    st.session_state.alumni_id = None
 
     # 1. Choose Student or Admin
     role = st.sidebar.selectbox("I am a:", ["Student", "Admin"])
@@ -49,9 +116,12 @@ if st.session_state.user_role is None:
         user = VALID_USERS.get(username)
 
         if user and user["password"] == password and user["role"] == role:
-            st.session_state.user_role = role
-            st.session_state.username = username
-            st.rerun()
+    st.session_state.user_role = role
+    st.session_state.username = username
+    # if this is an alumni account, remember their ALUMNIID
+    st.session_state.alumni_id = user.get("alumni_id")
+    st.rerun()
+
         else:
             st.sidebar.error("Invalid credentials for this role. Try again.")
 
@@ -76,6 +146,11 @@ if st.session_state.user_role == "Admin":
     page = st.sidebar.selectbox(
         "Navigate",
         ["Dashboard", "Alumni Directory", "Alumni Profile"],
+    )
+elif st.session_state.user_role == "Alumni":
+    page = st.sidebar.selectbox(
+        "Navigate",
+        ["My Profile & Updates", "Make a Contribution", "Alumni Directory"],
     )
 else:  # Student
     page = st.sidebar.selectbox(
@@ -125,12 +200,27 @@ elif page == "Alumni Directory":
         if filtered.empty:
             st.warning("No alumni found matching that search.")
         else:
-            st.write("Click an AlumniID, then go to **Alumni Profile** to view details.")
+            st.write("Select an alumni below to instantly view their profile.")
+
+            # Show results table
             st.dataframe(
                 filtered[["ALUMNIID", "FIRSTNAME", "LASTNAME",
-                          "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR", "MAILING_LIST"]],
-                use_container_width=True
+                          "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR"]],
+                use_container_width=True,
             )
+
+            # Let user pick one result, then render the profile under the table
+            selected_id = st.radio(
+                "Choose an alumni to view profile:",
+                filtered["ALUMNIID"],
+                format_func=lambda x: f"{x} - {filtered[filtered['ALUMNIID']==x]['FIRSTNAME'].iloc[0]} "
+                                      f"{filtered[filtered['ALUMNIID']==x]['LASTNAME'].iloc[0]}"
+            )
+
+            st.markdown("---")
+            st.subheader("Alumni Profile")
+            render_alumni_profile(int(selected_id))
+
 
 # ---------- ALUMNI PROFILE ----------
 elif page == "Alumni Profile":
@@ -143,6 +233,9 @@ elif page == "Alumni Profile":
         format_func=lambda x: f"{x} - {alumni_df[alumni_df['ALUMNIID']==x]['FIRSTNAME'].iloc[0]} "
                               f"{alumni_df[alumni_df['ALUMNIID']==x]['LASTNAME'].iloc[0]}"
     )
+
+    render_alumni_profile(int(selected_id))
+
 
     alum = get_alumni_by_id(selected_id).iloc[0]
 
