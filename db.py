@@ -251,6 +251,7 @@ def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_st
             INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
             VALUES (:cid, :aid, :camp, :cdate, :amt)
         """)
+        
         conn.execute(sql, {
             "cid": int(next_id),
             "aid": int(alumni_id),
