@@ -4,7 +4,6 @@ import pandas as pd
 
 from db import init_db, get_alumni, get_alumni_by_id, get_degrees_for_alumni, get_employment_for_alumni, get_memberships_for_alumni, get_contributions_for_alumni, get_summary_stats, get_campaigns, create_contribution, update_alumni_contact
 
-
 # ---- DEMO USERS ----
 VALID_USERS = {
     "admin": {
@@ -27,7 +26,6 @@ VALID_USERS = {
 init_db()
 
 st.set_page_config(page_title="Alumni Subsystem", layout="wide")
-
 
 # ---------- REUSABLE PROFILE RENDERING ----------
 def render_alumni_profile(alumni_id: int):
