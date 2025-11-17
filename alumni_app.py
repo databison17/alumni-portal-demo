@@ -12,7 +12,7 @@ from db import (
     get_summary_stats,
 )
 
-# ---- DEMO USERS (you can change or expand this) ----
+# ---- DEMO USERS ----
 VALID_USERS = {
     "admin": {
         "password": "HUSB2024!",
@@ -44,7 +44,6 @@ def render_alumni_profile(alumni_id: int):
         st.error("Alumni not found.")
         return
 
-    # alum is defined right here
     alum = alum_df.iloc[0]
 
     st.subheader(f"{alum['FIRSTNAME']} {alum['LASTNAME']}")
@@ -54,7 +53,7 @@ def render_alumni_profile(alumni_id: int):
     st.write(f"**Graduation Year:** {alum['ALUM_GRADYEAR']}")
     st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
 
-    # 🔗 LinkedIn profile link (NEW)
+    # LinkedIn profile link
     if "LINKEDIN" in alum and alum["LINKEDIN"]:
         st.write(f"**LinkedIn:** [{alum['LINKEDIN']}]({alum['LINKEDIN']})")
     else:
@@ -105,7 +104,6 @@ def render_alumni_profile(alumni_id: int):
             st.write(f"**Total given by this alumni:** ${total:,.2f}")
 
 
-
 # ---------- SESSION STATE FOR LOGIN ----------
 if "user_role" not in st.session_state:
     st.session_state.user_role = None
@@ -118,27 +116,21 @@ st.sidebar.title("Portal Access")
 
 # ---------- LOGGED OUT VIEW ----------
 if st.session_state.user_role is None:
-    # 1. Choose role
     role = st.sidebar.selectbox("I am a:", ["Student", "Admin", "Alumni"])
-
-    # 2. Username + password
     username = st.sidebar.text_input(f"{role} username")
     password = st.sidebar.text_input(f"{role} password", type="password")
 
-    # 3. Check credentials
     if st.sidebar.button("Enter portal"):
         user = VALID_USERS.get(username)
 
         if user and user["password"] == password and user["role"] == role:
             st.session_state.user_role = role
             st.session_state.username = username
-            # If this is an alumni account, remember their ALUMNIID
             st.session_state.alumni_id = user.get("alumni_id")
             st.rerun()
         else:
             st.sidebar.error("Invalid credentials for this role. Please try again.")
 
-    # Stop app until logged in
     st.title("Howard University School of Business – Alumni & Student Portal")
     st.caption("Please log in as Student, Admin, or Alumni using the sidebar.")
     st.stop()
@@ -155,7 +147,7 @@ if st.sidebar.button("Log out"):
     st.session_state.alumni_id = None
     st.rerun()
 
-# ---- Role-based navigation ----
+# Role-based navigation
 if st.session_state.user_role == "Admin":
     page = st.sidebar.selectbox(
         "Navigate",
@@ -206,9 +198,8 @@ if page == "Dashboard":
     """
     )
 
-    # -------- Interactive drill-down section --------
+    # Interactive drill-down
     st.markdown("### Drill down into the data")
-
     detail_view = st.radio(
         "Click a category to see details:",
         ["Alumni", "Employers", "Campaigns", "Contributions"],
@@ -251,13 +242,7 @@ if page == "Dashboard":
 
         campaigns = get_campaigns()
         st.dataframe(
-            campaigns[
-                [
-                    "CAMPAIGNID",
-                    "CAMPAIGNNAME",
-                    "GOALAMOUNT",
-                ]
-            ],
+            campaigns[["CAMPAIGNID", "CAMPAIGNNAME", "GOALAMOUNT"]],
             use_container_width=True,
         )
         st.caption(
@@ -290,7 +275,6 @@ elif page == "Alumni Directory":
     st.header("Alumni Directory")
 
     alumni_df = get_alumni()
-
     search = st.text_input("Search by last name or major")
 
     if not search:
@@ -307,7 +291,6 @@ elif page == "Alumni Directory":
         else:
             st.write("Select an alumni below to instantly view their profile.")
 
-            # Show results table
             st.dataframe(
                 filtered[
                     [
@@ -322,7 +305,6 @@ elif page == "Alumni Directory":
                 use_container_width=True,
             )
 
-            # Let user pick one result, then render the profile under the table
             selected_id = st.radio(
                 "Choose an alumni to view profile:",
                 filtered["ALUMNIID"],
@@ -334,7 +316,7 @@ elif page == "Alumni Directory":
             st.subheader("Alumni Profile")
             render_alumni_profile(int(selected_id))
 
-# ---------- ALUMNI PROFILE (ADMIN ONLY IN NAV) ----------
+# ---------- ALUMNI PROFILE (ADMIN NAV) ----------
 elif page == "Alumni Profile":
     st.header("Alumni Profile")
 
@@ -376,15 +358,18 @@ elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
                     ["Yes", "No"],
                     index=0 if alum["MAILING_LIST"] == "Yes" else 1,
                 )
+                linkedin = st.text_input(
+                    "LinkedIn Profile URL", value=alum.get("LINKEDIN", "")
+                )
                 submitted = st.form_submit_button("Save changes")
 
             if submitted:
-                from db import update_alumni_contact  # local import to avoid circular issues
+                from db import update_alumni_contact
 
-                update_alumni_contact(int(aid), email, phone, mailing)
-                st.success(
-                    "Profile updated successfully. (Stored in the alumni database.)"
-                )
+                update_alumni_contact(int(aid), email, phone, mailing, linkedin)
+                st.success("Profile updated successfully.")
+                st.markdown("### Updated Profile")
+                render_alumni_profile(int(aid))
 
             st.markdown("### My Academic & Career Snapshot")
             render_alumni_profile(int(aid))
@@ -398,7 +383,6 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
     else:
         from db import get_campaigns, create_contribution
 
-        # Show who is logged in
         alum_df = get_alumni_by_id(aid)
         if not alum_df.empty:
             alum = alum_df.iloc[0]
@@ -417,9 +401,8 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.info("No active campaigns available.")
         else:
             camp_lookup = {
-                f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(
-                    row["CAMPAIGNID"]
-                )
+                f\"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})\":
+                    int(row["CAMPAIGNID"])
                 for _, row in campaigns.iterrows()
             }
 
@@ -435,7 +418,7 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.markdown("---")
             st.markdown("### Complete Payment via PayPal")
 
-            # TODO: Replace YOUR_PAYPAL_BUSINESS_ID with your real business ID
+            # TODO: replace YOUR_PAYPAL_BUSINESS_ID with your real PayPal ID or donate link
             paypal_url = (
                 f"https://www.paypal.com/donate?"
                 f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
@@ -444,7 +427,9 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             st.markdown(
                 f"""
                 <a href="{paypal_url}" target="_blank">
-                    <button style="padding:10px 20px; border-radius:8px; background-color:#0070ba; color:white; border:none; font-size:16px;">
+                    <button style="padding:10px 20px; border-radius:8px;
+                                   background-color:#0070ba; color:white;
+                                   border:none; font-size:16px;">
                         Donate with PayPal
                     </button>
                 </a>
@@ -457,7 +442,6 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 "you can record the contribution in the HU database for tracking."
             )
 
-            # OPTIONAL — record in system after PayPal
             if st.button("Record Contribution in HU Database"):
                 date_str = datetime.date.today().isoformat()
                 create_contribution(
@@ -471,4 +455,4 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
                 )
 
                 st.markdown("#### Your contribution history")
-                render_alumni_profile(int(aid))  # shows updated Contributions tab
+                render_alumni_profile(int(aid))
