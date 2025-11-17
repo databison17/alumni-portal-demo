@@ -167,8 +167,9 @@ elif st.session_state.user_role == "Alumni":
 else:  # Student
     page = st.sidebar.selectbox(
         "Navigate",
-        ["Alumni Directory", "Alumni Profile"],
+        ["Alumni Directory"],
     )
+
 
 st.title("Howard University School of Business – Alumni & Student Portal")
 st.caption(
@@ -193,12 +194,27 @@ if page == "Dashboard":
 
     st.markdown(
         """
-    **How this supports our project goal:**
-    - Admins can quickly see how many alumni are in the system.
-    - They can track fundraising campaign performance.
-    - They can monitor alumni employment outcomes (success stories).
+    ### How this supports our project goal
+
+    This dashboard gives **administrators** a quick snapshot of how the alumni network is doing:
+
+    - **Total Alumni** → how many graduates are being tracked in the system.
+    - **Total Employers** → which companies are hiring our students and alumni.
+    - **Active Campaigns** → current fundraising or engagement campaigns.
+    - **Total Contributions** → how much alumni have given back overall.
+
+    From here, an admin can:
+    - Identify majors or cohorts to target for outreach.
+    - Measure how successful alumni are in the job market (via the Alumni Directory and Profiles).
+    - Track the impact of alumni giving on specific campaigns.
     """
     )
+
+    st.info(
+        "Tip for presentation: explain that the Dashboard is the admin ‘control center’ "
+        "that summarizes everything else in the portal (Directory, Profiles, Contributions)."
+    )
+
 
 # ---------- ALUMNI DIRECTORY (STUDENT / ADMIN / ALUMNI) ----------
 elif page == "Alumni Directory":
@@ -313,6 +329,20 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
     else:
         from db import get_campaigns, create_contribution
 
+        # Show who is logged in
+        alum_df = get_alumni_by_id(aid)
+        if not alum_df.empty:
+            alum = alum_df.iloc[0]
+            st.write(
+                f"You are logged in as **{alum['FIRSTNAME']} {alum['LASTNAME']}** "
+                f"(Class of {alum['ALUM_GRADYEAR']}, {alum['GRAD_MAJOR']})."
+            )
+
+        st.markdown(
+            "Use this page to **give back to the School of Business** by "
+            "supporting one of the active campaigns."
+        )
+
         campaigns = get_campaigns()
         if campaigns.empty:
             st.info("No active campaigns available.")
@@ -335,7 +365,7 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             if st.button("Submit contribution"):
                 create_contribution(int(aid), camp_lookup[label], float(amount), date_str)
                 st.success(
-                    "Thank you! Your contribution has been recorded in the database."
+                    "Thank you! Your contribution has been recorded in the alumni database."
                 )
 
                 st.markdown("#### Your contribution history")
