@@ -121,132 +121,101 @@ def init_db() -> None:
 
 
 def seed_demo_data() -> None:
-    """
-    Insert a small set of demo rows if the ALUMNI table is empty.
-    Safe to call multiple times.
-    """
+    """Insert a small set of demo rows if each table is empty."""
     with engine.begin() as conn:
-        try:
-            count = conn.execute(text("SELECT COUNT(*) FROM ALUMNI")).scalar() or 0
-        except Exception:
-            # If ALUMNI somehow doesn't exist, just abort quietly
-            return
+        # -------- ALUMNI + DEGREE --------
+        alumni_count = conn.execute(
+            text("SELECT COUNT(*) FROM ALUMNI")
+        ).scalar() or 0
 
-        if count > 0:
-            # Already seeded
-            return
-
-        # ---------- ALUMNI ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO ALUMNI (
-                ALUMNIID, FIRSTNAME, LASTNAME, PRIMARYEMAIL,
-                PHONE, GRAD_MAJOR, ALUM_GRADYEAR, MAILING_LIST
+        if alumni_count == 0:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO ALUMNI (ALUMNIID, FIRSTNAME, LASTNAME, PRIMARYEMAIL, PHONE, GRAD_MAJOR, ALUM_GRADYEAR, MAILING_LIST)
+                VALUES
+                    (1001, 'Maya',  'Johnson', 'maya.johnson@email.com', '202-555-7821', 'Finance',        2018, 'Yes'),
+                    (1002, 'Jordan','Smith',   'jordan.smith@email.com','404-555-6719', 'Marketing',      2019, 'Yes'),
+                    (1003, 'Amira', 'Patel',   'amira.patel@email.com', '312-555-2190', 'Computer Info Systems', 2020, 'No'),
+                    (1004, 'Isaiah','Thompson','isaiah.thompson@email.com','443-555-9898','Finance',      2017, 'Yes'),
+                    (1005, 'Nia',   'Brown',   'nia.brown@email.com',   '703-555-3104', 'Supply Chain',  2021, 'Yes')
+                """
             )
-            VALUES
-                (1001, 'Maya',   'Johnson',  'maya.johnson@email.com',
-                 '202-555-7821', 'Finance',                 2018, 'Yes'),
-                (1002, 'Jordan', 'Smith',    'jordan.smith@email.com',
-                 '404-555-6719', 'Marketing',               2019, 'Yes'),
-                (1003, 'Amira',  'Patel',    'amira.patel@email.com',
-                 '312-555-2190', 'Computer Info Systems',   2020, 'No'),
-                (1004, 'Isaiah', 'Thompson', 'isaiah.thompson@email.com',
-                 '443-555-9898', 'Finance',                 2017, 'Yes'),
-                (1005, 'Nia',    'Brown',    'nia.brown@email.com',
-                 '703-555-3104', 'Supply Chain',            2021, 'Yes')
-            """
-        )
 
-        # ---------- DEGREE ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO DEGREE (
-                DEGREEID, ALUMNIID, MAJOR, MINOR,
-                SCHOOL, HONORS, GRADMONTH, GRADYEAR
+            conn.exec_driver_sql(
+                """
+                INSERT INTO DEGREE (DEGREEID, ALUMNIID, MAJOR, MINOR, SCHOOL, HONORS, GRADMONTH, GRADYEAR)
+                VALUES
+                    (2001, 1001, 'Finance',        'None', 'Howard University School of Business', 'Cum Laude', 'May', 2018),
+                    (2002, 1002, 'Marketing',      'None', 'Howard University School of Business', NULL,       'May', 2019),
+                    (2003, 1003, 'Computer Info Systems','Math','Howard University School of Business','Magna Cum Laude','May',2020),
+                    (2004, 1004, 'Finance',        'Accounting','Howard University School of Business',NULL,'May',2017),
+                    (2005, 1005, 'Supply Chain',   'None', 'Howard University School of Business', NULL,       'May', 2021)
+                """
             )
-            VALUES
-                (2001, 1001, 'Finance',  'None',
-                 'Howard University School of Business',
-                 'Cum Laude', 'May', 2018),
 
-                (2002, 1002, 'Marketing', 'None',
-                 'Howard University School of Business',
-                 NULL, 'May', 2019),
+        # -------- EMPLOYMENT --------
+        emp_count = conn.execute(
+            text("SELECT COUNT(*) FROM EMPLOYMENT")
+        ).scalar() or 0
 
-                (2003, 1003, 'Computer Info Systems', 'Math',
-                 'Howard University School of Business',
-                 'Magna Cum Laude', 'May', 2020),
-
-                (2004, 1004, 'Finance', 'Accounting',
-                 'Howard University School of Business',
-                 NULL, 'May', 2017),
-
-                (2005, 1005, 'Supply Chain', 'None',
-                 'Howard University School of Business',
-                 NULL, 'May', 2021)
-            """
-        )
-
-        # ---------- EMPLOYMENT ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO EMPLOYMENT (
-                EMPLOYMENTID, ALUMNIID, EMPLOYERNAME,
-                TITLE, INDUSTRY, CITY, STATE, STARTYEAR
+        if emp_count == 0:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO EMPLOYMENT (EMPLOYMENTID, ALUMNIID, EMPLOYERNAME, TITLE, INDUSTRY, CITY, STATE, STARTYEAR)
+                VALUES
+                    (3001, 1001, 'Deloitte',            'Consultant',     'Consulting', 'Washington', 'DC', 2018),
+                    (3002, 1002, 'Procter & Gamble',    'Brand Manager',  'CPG',        'Cincinnati', 'OH', 2019),
+                    (3003, 1003, 'Google',              'Analyst',        'Technology', 'Mountain View', 'CA', 2020),
+                    (3004, 1004, 'Bank of America',     'Risk Analyst',   'Financial Services','Charlotte','NC',2017),
+                    (3005, 1005, 'Amazon',              'Operations Mgr', 'E-commerce', 'Seattle', 'WA', 2021)
+                """
             )
-            VALUES
-                (3001, 1001, 'Deloitte',
-                 'Consultant', 'Consulting', 'Washington', 'DC', 2018),
 
-                (3002, 1002, 'Procter & Gamble',
-                 'Brand Manager', 'CPG', 'Cincinnati', 'OH', 2019),
+        # -------- ALUMNI_MEMBERSHIP --------
+        membership_count = conn.execute(
+            text("SELECT COUNT(*) FROM ALUMNI_MEMBERSHIP")
+        ).scalar() or 0
 
-                (3003, 1003, 'Google',
-                 'Analyst', 'Technology', 'Mountain View', 'CA', 2020),
-
-                (3004, 1004, 'Bank of America',
-                 'Risk Analyst', 'Financial Services', 'Charlotte', 'NC', 2017),
-
-                (3005, 1005, 'Amazon',
-                 'Operations Mgr', 'E-commerce', 'Seattle', 'WA', 2021)
-            """
-        )
-
-        # ---------- ALUMNI_MEMBERSHIP ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO ALUMNI_MEMBERSHIP (
-                MEMBERSHIPID, ALUMNIID, ORGNAME, ROLE, STARTYEAR, ENDYEAR
+        if membership_count == 0:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO ALUMNI_MEMBERSHIP (MEMBERSHIPID, ALUMNIID, ORGNAME, ROLE, STARTYEAR, ENDYEAR)
+                VALUES
+                    (4001, 1001, 'HU Finance Alumni Network', 'Mentor', 2020, NULL),
+                    (4002, 1003, 'Tech Alumni Council',       'Member', 2021, NULL)
+                """
             )
-            VALUES
-                (4001, 1001, 'HU Finance Alumni Network', 'Mentor', 2020, NULL),
-                (4002, 1003, 'Tech Alumni Council',       'Member', 2021, NULL)
-            """
-        )
 
-        # ---------- CAMPAIGN ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO CAMPAIGN (CAMPAIGNID, CAMPAIGNNAME, GOALAMOUNT, STATUS)
-            VALUES
-                (5001, 'Student Scholarship Fund', 50000, 'Active'),
-                (5002, 'Study Abroad Support',    30000, 'Active')
-            """
-        )
+        # -------- CAMPAIGN --------
+        campaign_count = conn.execute(
+            text("SELECT COUNT(*) FROM CAMPAIGN")
+        ).scalar() or 0
 
-        # ---------- CONTRIBUTION ----------
-        conn.exec_driver_sql(
-            """
-            INSERT INTO CONTRIBUTION (
-                CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT
+        if campaign_count == 0:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO CAMPAIGN (CAMPAIGNID, CAMPAIGNNAME, GOALAMOUNT, STATUS)
+                VALUES
+                    (5001, 'Student Scholarship Fund', 50000, 'Active'),
+                    (5002, 'Study Abroad Support',    30000, 'Active')
+                """
             )
-            VALUES
-                (9001, 1001, 5001, '2024-01-15', 1500.00),
-                (9002, 1002, 5001, '2024-03-10',  750.00),
-                (9003, 1003, 5002, '2024-05-01', 1000.00)
-            """
-        )
 
+        # -------- CONTRIBUTION --------
+        contrib_count = conn.execute(
+            text("SELECT COUNT(*) FROM CONTRIBUTION")
+        ).scalar() or 0
+
+        if contrib_count == 0:
+            conn.exec_driver_sql(
+                """
+                INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
+                VALUES
+                    (9001, 1001, 5001, '2024-01-15', 1500.00),
+                    (9002, 1002, 5001, '2024-03-10',  750.00),
+                    (9003, 1003, 5002, '2024-05-01', 1000.00)
+                """
+            )
 
 def ensure_linkedin_demo() -> None:
     """
@@ -267,11 +236,9 @@ def ensure_linkedin_demo() -> None:
             # If the table/column isn't present, just ignore.
             pass
 
-
 # ---------------------------------------------
 # Data access helpers used by Streamlit app
 # ---------------------------------------------
-
 
 def get_alumni() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM ALUMNI", engine)
