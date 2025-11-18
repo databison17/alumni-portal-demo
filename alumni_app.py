@@ -10,7 +10,6 @@ from db import (
     get_memberships_for_alumni,
     get_contributions_for_alumni,
     get_summary_stats,
-    get_employer_summary,
 )
 # Ensure DB and sample data exist
 init_db()
