@@ -1,22 +1,26 @@
+from pathlib import Path
+
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-# -------------------------------------------------------------------
-# SQLite Engine
-# -------------------------------------------------------------------
-engine = create_engine("sqlite:///alumni.db", echo=False, future=True)
+# -------------------------------------------------
+# Database setup
+# -------------------------------------------------
+
+DB_PATH = Path("alumni.db")
+engine = create_engine(f"sqlite:///{DB_PATH}", echo=False, future=True)
 
 
-# -------------------------------------------------------------------
-#  CREATE TABLES + SEED DATA
-# -------------------------------------------------------------------
-def init_db():
-    """Create tables and insert demo data if empty."""
+# -------------------------------------------------
+# Schema + seed data
+# -------------------------------------------------
+
+def init_db() -> None:
+    """Create tables and insert demo records if they do not exist."""
     with engine.begin() as conn:
-        # --------------------------
-        # ALUMNI TABLE
-        # --------------------------
-        conn.execute(text("""
+        # ALUMNI
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS ALUMNI (
                 ALUMNIID      INTEGER PRIMARY KEY,
                 FIRSTNAME     TEXT NOT NULL,
@@ -25,15 +29,15 @@ def init_db():
                 PHONE         TEXT,
                 GRAD_MAJOR    TEXT,
                 ALUM_GRADYEAR INTEGER,
-                MAILING_LIST  TEXT,
+                MAILING_LIST  TEXT DEFAULT 'Yes',
                 LINKEDIN      TEXT
-            );
-        """))
+            )
+            """
+        )
 
-        # --------------------------
-        # DEGREE TABLE
-        # --------------------------
-        conn.execute(text("""
+        # DEGREE
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS DEGREE (
                 DEGREEID  INTEGER PRIMARY KEY,
                 ALUMNIID  INTEGER NOT NULL,
@@ -42,176 +46,176 @@ def init_db():
                 SCHOOL    TEXT,
                 HONORS    TEXT,
                 GRADMONTH TEXT,
-                GRADYEAR  INTEGER
-            );
-        """))
+                GRADYEAR  INTEGER,
+                FOREIGN KEY (ALUMNIID) REFERENCES ALUMNI(ALUMNIID)
+            )
+            """
+        )
 
-        # --------------------------
-        # EMPLOYMENT TABLE
-        # --------------------------
-        conn.execute(text("""
+        # EMPLOYMENT
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS EMPLOYMENT (
                 EMPLOYMENTID INTEGER PRIMARY KEY,
                 ALUMNIID     INTEGER NOT NULL,
                 EMPLOYERNAME TEXT,
+                TITLE        TEXT,
                 INDUSTRY     TEXT,
-                POSITION     TEXT,
+                CITY         TEXT,
+                STATE        TEXT,
                 STARTYEAR    INTEGER,
-                ENDYEAR      INTEGER
-            );
-        """))
+                FOREIGN KEY (ALUMNIID) REFERENCES ALUMNI(ALUMNIID)
+            )
+            """
+        )
 
-        # --------------------------
-        # ALUMNI MEMBERSHIP TABLE
-        # --------------------------
-        conn.execute(text("""
+        # ALUMNI_MEMBERSHIP
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS ALUMNI_MEMBERSHIP (
-                MEMBERID    INTEGER PRIMARY KEY,
-                ALUMNIID    INTEGER NOT NULL,
-                ORGANIZATION TEXT,
-                ROLE        TEXT,
-                STARTYEAR   INTEGER,
-                ENDYEAR     INTEGER
-            );
-        """))
+                MEMBERSHIPID INTEGER PRIMARY KEY,
+                ALUMNIID     INTEGER NOT NULL,
+                ORGNAME      TEXT,
+                ROLE         TEXT,
+                STARTYEAR    INTEGER,
+                ENDYEAR      INTEGER,
+                FOREIGN KEY (ALUMNIID) REFERENCES ALUMNI(ALUMNIID)
+            )
+            """
+        )
 
-        # --------------------------
-        # CAMPAIGN TABLE
-        # --------------------------
-        conn.execute(text("""
+        # CAMPAIGN
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS CAMPAIGN (
                 CAMPAIGNID   INTEGER PRIMARY KEY,
-                CAMPAIGNNAME TEXT,
-                GOALAMOUNT   REAL,
-                STATUS       TEXT
-            );
-        """))
+                CAMPAIGNNAME TEXT NOT NULL,
+                GOALAMOUNT   REAL NOT NULL,
+                STATUS       TEXT NOT NULL
+            )
+            """
+        )
 
-        # --------------------------
-        # CONTRIBUTION TABLE
-        # --------------------------
-        conn.execute(text("""
+        # CONTRIBUTION
+        conn.exec_driver_sql(
+            """
             CREATE TABLE IF NOT EXISTS CONTRIBUTION (
                 CONTRIBUTIONID   INTEGER PRIMARY KEY,
                 ALUMNIID         INTEGER NOT NULL,
                 CAMPAIGNID       INTEGER NOT NULL,
-                CONTRIBUTIONDATE TEXT,
-                AMOUNT           REAL
-            );
-        """))
+                CONTRIBUTIONDATE TEXT NOT NULL,
+                AMOUNT           REAL NOT NULL,
+                FOREIGN KEY (ALUMNIID)  REFERENCES ALUMNI(ALUMNIID),
+                FOREIGN KEY (CAMPAIGNID) REFERENCES CAMPAIGN(CAMPAIGNID)
+            )
+            """
+        )
 
+    # After schema is in place, seed data if needed
     seed_demo_data()
-    ensure_linkedin_column_and_demo_data()
+    ensure_linkedin_demo()
 
 
-# -------------------------------------------------------------------
-#  ENSURE LINKEDIN COLUMN + DEMO VALUE
-# -------------------------------------------------------------------
-def ensure_linkedin_column_and_demo_data():
-    """Make sure ALUMNI has a LINKEDIN column and a demo URL for Maya."""
+def seed_demo_data() -> None:
+    """Insert a small set of demo rows if the tables are empty."""
     with engine.begin() as conn:
-        cols = conn.execute(text("PRAGMA table_info(ALUMNI);")).fetchall()
-        col_names = [c[1] for c in cols]
+        # Only seed ALUMNI once
+        count = conn.execute(text("SELECT COUNT(*) FROM ALUMNI")).scalar() or 0
+        if count > 0:
+            return
 
-        # Add LINKEDIN column if missing
-        if "LINKEDIN" not in col_names:
-            conn.execute(text("ALTER TABLE ALUMNI ADD COLUMN LINKEDIN TEXT;"))
+        # Alumni
+        conn.exec_driver_sql(
+            """
+            INSERT INTO ALUMNI (ALUMNIID, FIRSTNAME, LASTNAME, PRIMARYEMAIL, PHONE, GRAD_MAJOR, ALUM_GRADYEAR, MAILING_LIST)
+            VALUES
+                (1001, 'Maya',  'Johnson', 'maya.johnson@email.com', '202-555-7821', 'Finance',        2018, 'Yes'),
+                (1002, 'Jordan','Smith',   'jordan.smith@email.com','404-555-6719', 'Marketing',      2019, 'Yes'),
+                (1003, 'Amira', 'Patel',   'amira.patel@email.com', '312-555-2190', 'Computer Info Systems', 2020, 'No'),
+                (1004, 'Isaiah','Thompson','isaiah.thompson@email.com','443-555-9898','Finance',      2017, 'Yes'),
+                (1005, 'Nia',   'Brown',   'nia.brown@email.com',   '703-555-3104', 'Supply Chain',  2021, 'Yes')
+            """
+        )
 
-        # Give Maya Johnson (ALUMNIID 1001) a demo LinkedIn URL if blank
-        conn.execute(text("""
-            UPDATE ALUMNI
-            SET LINKEDIN = 'https://www.linkedin.com/in/maya-johnson-demo'
-            WHERE ALUMNIID = 1001
-              AND (LINKEDIN IS NULL OR LINKEDIN = '');
-        """))
-
-
-# -------------------------------------------------------------------
-#  SEED DEMO DATA (ONLY IF ALUMNI TABLE IS EMPTY)
-# -------------------------------------------------------------------
-def seed_demo_data():
-    with engine.begin() as conn:
-        count = conn.execute(text("SELECT COUNT(*) FROM ALUMNI")).scalar()
-        if count and count > 0:
-            return  # already seeded
-
-        # Example single alumni (Maya Johnson)
-        conn.execute(text("""
-            INSERT INTO ALUMNI (
-                ALUMNIID, FIRSTNAME, LASTNAME,
-                PRIMARYEMAIL, PHONE,
-                GRAD_MAJOR, ALUM_GRADYEAR,
-                MAILING_LIST, LINKEDIN
-            )
-            VALUES (
-                1001, 'Maya', 'Johnson',
-                'maya.johnson@email.com', '202-555-7821',
-                'Finance', 2018,
-                'Yes', ''
-            );
-        """))
-
-        # Degree
-        conn.execute(text("""
-            INSERT INTO DEGREE (
-                DEGREEID, ALUMNIID, MAJOR, MINOR,
-                SCHOOL, HONORS, GRADMONTH, GRADYEAR
-            )
-            VALUES (
-                1, 1001, 'Finance', 'None',
-                'Howard University School of Business',
-                'Cum Laude', 'May', 2018
-            );
-        """))
+        # Degrees (one per alumni for demo)
+        conn.exec_driver_sql(
+            """
+            INSERT INTO DEGREE (DEGREEID, ALUMNIID, MAJOR, MINOR, SCHOOL, HONORS, GRADMONTH, GRADYEAR)
+            VALUES
+                (2001, 1001, 'Finance',        'None', 'Howard University School of Business', 'Cum Laude', 'May', 2018),
+                (2002, 1002, 'Marketing',      'None', 'Howard University School of Business', NULL,       'May', 2019),
+                (2003, 1003, 'Computer Info Systems','Math','Howard University School of Business','Magna Cum Laude','May',2020),
+                (2004, 1004, 'Finance',        'Accounting','Howard University School of Business',NULL,'May',2017),
+                (2005, 1005, 'Supply Chain',   'None', 'Howard University School of Business', NULL,       'May', 2021)
+            """
+        )
 
         # Employment
-        conn.execute(text("""
-            INSERT INTO EMPLOYMENT (
-                EMPLOYMENTID, ALUMNIID, EMPLOYERNAME,
-                INDUSTRY, POSITION, STARTYEAR, ENDYEAR
-            )
+        conn.exec_driver_sql(
+            """
+            INSERT INTO EMPLOYMENT (EMPLOYMENTID, ALUMNIID, EMPLOYERNAME, TITLE, INDUSTRY, CITY, STATE, STARTYEAR)
             VALUES
-            (1, 1001, 'Deloitte', 'Consulting',
-                'Financial Analyst', 2018, 2021),
-            (2, 1001, 'Bank of America', 'Banking',
-                'Senior Analyst', 2021, NULL);
-        """))
+                (3001, 1001, 'Deloitte',            'Consultant',     'Consulting', 'Washington', 'DC', 2018),
+                (3002, 1002, 'Procter & Gamble',    'Brand Manager',  'CPG',        'Cincinnati', 'OH', 2019),
+                (3003, 1003, 'Google',              'Analyst',        'Technology', 'Mountain View', 'CA', 2020),
+                (3004, 1004, 'Bank of America',     'Risk Analyst',   'Financial Services','Charlotte','NC',2017),
+                (3005, 1005, 'Amazon',              'Operations Mgr', 'E-commerce', 'Seattle', 'WA', 2021)
+            """
+        )
 
-        # Membership
-        conn.execute(text("""
-            INSERT INTO ALUMNI_MEMBERSHIP (
-                MEMBERID, ALUMNIID, ORGANIZATION, ROLE,
-                STARTYEAR, ENDYEAR
-            )
-            VALUES (
-                1, 1001,
-                'Howard Alumni Network',
-                'Member',
-                2019, NULL
-            );
-        """))
+        # Memberships
+        conn.exec_driver_sql(
+            """
+            INSERT INTO ALUMNI_MEMBERSHIP (MEMBERSHIPID, ALUMNIID, ORGNAME, ROLE, STARTYEAR, ENDYEAR)
+            VALUES
+                (4001, 1001, 'HU Finance Alumni Network', 'Mentor', 2020, NULL),
+                (4002, 1003, 'Tech Alumni Council',       'Member', 2021, NULL)
+            """
+        )
 
         # Campaigns
-        conn.execute(text("""
+        conn.exec_driver_sql(
+            """
             INSERT INTO CAMPAIGN (CAMPAIGNID, CAMPAIGNNAME, GOALAMOUNT, STATUS)
             VALUES
-            (1, 'Student Success Fund', 50000, 'Active'),
-            (2, 'Campus Renovation Initiative', 200000, 'Active');
-        """))
+                (5001, 'Student Scholarship Fund', 50000, 'Active'),
+                (5002, 'Study Abroad Support',    30000, 'Active')
+            """
+        )
 
-        # Initial contribution
-        conn.execute(text("""
-            INSERT INTO CONTRIBUTION (
-                CONTRIBUTIONID, ALUMNIID, CAMPAIGNID,
-                CONTRIBUTIONDATE, AMOUNT
+        # Contributions
+        conn.exec_driver_sql(
+            """
+            INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
+            VALUES
+                (9001, 1001, 5001, '2024-01-15', 1500.00),
+                (9002, 1002, 5001, '2024-03-10',  750.00),
+                (9003, 1003, 5002, '2024-05-01', 1000.00)
+            """
+        )
+
+
+def ensure_linkedin_demo() -> None:
+    """Ensure Maya has a demo LinkedIn URL; safe to run multiple times."""
+    with engine.begin() as conn:
+        try:
+            conn.exec_driver_sql(
+                """
+                UPDATE ALUMNI
+                SET LINKEDIN = 'https://www.linkedin.com/in/maya-johnson-demo'
+                WHERE ALUMNIID = 1001
+                  AND (LINKEDIN IS NULL OR LINKEDIN = '')
+                """
             )
-            VALUES (9001, 1001, 1, '2023-10-15', 250.00);
-        """))
+        except Exception:
+            # If the column does not exist for some reason, just ignore silently
+            pass
 
 
-# -------------------------------------------------------------------
-#  BASIC DATA ACCESS HELPERS
-# -------------------------------------------------------------------
+# -------------------------------------------------
+# Data access helpers used by Streamlit app
+# -------------------------------------------------
+
 def get_alumni() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM ALUMNI", engine)
 
@@ -237,57 +241,54 @@ def get_memberships_for_alumni(alumni_id: int) -> pd.DataFrame:
 
 
 def get_contributions_for_alumni(alumni_id: int) -> pd.DataFrame:
-    """
-    Contributions for a single alumni, joined with campaign names.
-    """
-    sql = text("""
-        SELECT
-            c.CONTRIBUTIONID,
-            c.CONTRIBUTIONDATE,
-            c.AMOUNT,
-            cp.CAMPAIGNNAME
-        FROM CONTRIBUTION c
-        LEFT JOIN CAMPAIGN cp
-            ON c.CAMPAIGNID = cp.CAMPAIGNID
-        WHERE c.ALUMNIID = :aid
-        ORDER BY c.CONTRIBUTIONDATE DESC
-    """)
+    sql = text(
+        """
+        SELECT C.CONTRIBUTIONDATE,
+               C.AMOUNT,
+               M.CAMPAIGNNAME
+        FROM CONTRIBUTION C
+        JOIN CAMPAIGN M ON C.CAMPAIGNID = M.CAMPAIGNID
+        WHERE C.ALUMNIID = :aid
+        ORDER BY C.CONTRIBUTIONDATE DESC
+        """
+    )
     return pd.read_sql(sql, engine, params={"aid": alumni_id})
 
 
-# -------------------------------------------------------------------
-#  CAMPAIGNS + CONTRIBUTIONS (ADMIN / ALUMNI)
-# -------------------------------------------------------------------
+def update_alumni_contact(alumni_id: int, email: str, phone: str, mailing_list: str) -> None:
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                UPDATE ALUMNI
+                SET PRIMARYEMAIL = :email,
+                    PHONE        = :phone,
+                    MAILING_LIST = :ml
+                WHERE ALUMNIID  = :aid
+                """
+            ),
+            {"email": email, "phone": phone, "ml": mailing_list, "aid": alumni_id},
+        )
+
+
 def get_campaigns() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM CAMPAIGN", engine)
 
 
-def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_str: str):
+def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_str: str) -> None:
     """Insert a new contribution record."""
     with engine.begin() as conn:
         next_id = conn.execute(
-            text("SELECT COALESCE(MAX(CONTRIBUTIONID), 9000) + 1 FROM CONTRIBUTION")
+            text("SELECT COALESCE(MAX(CONTRIBUTIONID), 9000) + 1 AS nid FROM CONTRIBUTION")
         ).scalar()
 
-        sql = text("""
-            INSERT INTO CONTRIBUTION (
-                CONTRIBUTIONID,
-                ALUMNIID,
-                CAMPAIGNID,
-                CONTRIBUTIONDATE,
-                AMOUNT
-            )
-            VALUES (
-                :cid,
-                :aid,
-                :camp,
-                :cdate,
-                :amt
-            )
-        """)
-
         conn.execute(
-            sql,
+            text(
+                """
+                INSERT INTO CONTRIBUTION (CONTRIBUTIONID, ALUMNIID, CAMPAIGNID, CONTRIBUTIONDATE, AMOUNT)
+                VALUES (:cid, :aid, :camp, :cdate, :amt)
+                """
+            ),
             {
                 "cid": int(next_id),
                 "aid": int(alumni_id),
@@ -299,51 +300,36 @@ def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_st
 
 
 def get_all_contributions() -> pd.DataFrame:
-    """
-    For the admin 'Contributions' drill-down:
-    CONTRIBUTIONDATE | FIRSTNAME | LASTNAME | CAMPAIGNNAME | AMOUNT
-    """
-    sql = text("""
+    sql = """
         SELECT
-            c.CONTRIBUTIONDATE,
-            a.FIRSTNAME,
-            a.LASTNAME,
-            cp.CAMPAIGNNAME,
-            c.AMOUNT
-        FROM CONTRIBUTION c
-        LEFT JOIN ALUMNI a
-            ON c.ALUMNIID = a.ALUMNIID
-        LEFT JOIN CAMPAIGN cp
-            ON c.CAMPAIGNID = cp.CAMPAIGNID
-        ORDER BY c.CONTRIBUTIONDATE DESC
-    """)
+            C.CONTRIBUTIONDATE,
+            A.FIRSTNAME,
+            A.LASTNAME,
+            M.CAMPAIGNNAME,
+            C.AMOUNT
+        FROM CONTRIBUTION C
+        JOIN ALUMNI  A ON C.ALUMNIID  = A.ALUMNIID
+        JOIN CAMPAIGN M ON C.CAMPAIGNID = M.CAMPAIGNID
+        ORDER BY C.CONTRIBUTIONDATE DESC
+    """
     return pd.read_sql(sql, engine)
 
 
-def update_alumni_contact(alumni_id: int, email: str, phone: str, mailing_list: str):
-    """Used by 'My Profile & Updates' form in alumni_app.py."""
-    with engine.begin() as conn:
-        conn.execute(
-            text("""
-                UPDATE ALUMNI
-                SET PRIMARYEMAIL = :email,
-                    PHONE        = :phone,
-                    MAILING_LIST = :ml
-                WHERE ALUMNIID = :aid
-            """),
-            {
-                "email": email,
-                "phone": phone,
-                "ml": mailing_list,
-                "aid": alumni_id,
-            },
-        )
+def get_employer_summary() -> pd.DataFrame:
+    """Return one row per employer with a count of distinct alumni there."""
+    sql = """
+        SELECT
+            EMPLOYERNAME,
+            INDUSTRY,
+            COUNT(DISTINCT ALUMNIID) AS NUM_ALUMNI
+        FROM EMPLOYMENT
+        GROUP BY EMPLOYERNAME, INDUSTRY
+        ORDER BY NUM_ALUMNI DESC
+    """
+    return pd.read_sql(sql, engine)
 
 
-# -------------------------------------------------------------------
-#  DASHBOARD SUMMARY HELPERS
-# -------------------------------------------------------------------
-def get_summary_stats():
+def get_summary_stats() -> dict:
     """Aggregates used by the admin dashboard metrics."""
     # --- totals we can safely get directly with SQL ---
     with engine.begin() as conn:
@@ -366,14 +352,10 @@ def get_summary_stats():
         if emp_df.empty:
             total_employers = 0
         elif "EMPLOYERNAME" in emp_df.columns:
-            # ideal case: count distinct employers by name
             total_employers = emp_df["EMPLOYERNAME"].nunique()
         else:
-            # fallback: if the column name is different in your older DB,
-            # at least count distinct alumni that have any employment row
             total_employers = emp_df["ALUMNIID"].nunique()
     except Exception:
-        # if table doesn't exist or anything else goes wrong, don't crash the app
         total_employers = 0
 
     return {
