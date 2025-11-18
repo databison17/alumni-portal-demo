@@ -315,17 +315,42 @@ def get_all_contributions() -> pd.DataFrame:
 
 
 def get_employer_summary() -> pd.DataFrame:
-    """Return one row per employer with a count of distinct alumni there."""
-    sql = """
-        SELECT
-            EMPLOYERNAME,
-            INDUSTRY,
-            COUNT(DISTINCT ALUMNIID) AS NUM_ALUMNI
-        FROM EMPLOYMENT
-        GROUP BY EMPLOYERNAME, INDUSTRY
-        ORDER BY NUM_ALUMNI DESC
     """
-    return pd.read_sql(sql, engine)
+    Return a summary of how many alumni work at each employer.
+    This version is defensive: if the EMPLOYMENT table or columns
+    are missing, it returns an empty DataFrame instead of crashing.
+    """
+    try:
+        emp = pd.read_sql("SELECT * FROM EMPLOYMENT", engine)
+    except Exception:
+        # Table doesn't exist or can't be read – return empty result
+        return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
+
+    # If there are no rows, just return an empty summary
+    if emp.empty:
+        return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
+
+    # We always need EMPLOYERNAME; if it's not there, we can't summarize
+    if "EMPLOYERNAME" not in emp.columns:
+        return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
+
+    # Group by whatever columns we actually have
+    group_cols = ["EMPLOYERNAME"]
+    if "INDUSTRY" in emp.columns:
+        group_cols.append("INDUSTRY")
+
+    summary = (
+        emp.groupby(group_cols)
+           .size()
+           .reset_index(name="NUM_ALUMNI")
+           .sort_values("NUM_ALUMNI", ascending=False)
+    )
+
+    # Make sure INDUSTRY column exists for the Streamlit table
+    if "INDUSTRY" not in summary.columns:
+        summary["INDUSTRY"] = "Unknown"
+
+    return summary[["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"]]
 
 def get_summary_stats() -> dict:
     """Aggregates used by the admin dashboard metrics."""
