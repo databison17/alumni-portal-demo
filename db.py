@@ -260,35 +260,20 @@ def get_memberships_for_alumni(alumni_id: int) -> pd.DataFrame:
     sql = text("SELECT * FROM ALUMNI_MEMBERSHIP WHERE ALUMNIID = :aid")
     return pd.read_sql(sql, engine, params={"aid": alumni_id})
 
-def get_employer_summary():
+def get_employer_summary() -> pd.DataFrame:
     """
-    Return a summary of employers hiring our alumni.
-    Used on the Admin dashboard when 'Employers' is selected.
+    One row per employer with how many distinct alumni have worked there.
     """
-    from sqlalchemy import text
-    import pandas as pd
-
-    with engine.begin() as conn:
-        try:
-            sql = text(
-                """
-                SELECT
-                    EMPLOYERNAME,
-                    INDUSTRY,
-                    COUNT(*) AS NUM_ALUMNI
-                FROM EMPLOYMENT
-                GROUP BY EMPLOYERNAME, INDUSTRY
-                ORDER BY NUM_ALUMNI DESC, EMPLOYERNAME
-                """
-            )
-            df = pd.read_sql(sql, conn)
-        except Exception:
-            # If the EMPLOYMENT table / columns aren't present, return an empty table
-            df = pd.DataFrame(
-                columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"]
-            )
-
-    return df
+    sql = """
+        SELECT
+            EMPLOYERNAME,
+            INDUSTRY,
+            COUNT(DISTINCT ALUMNIID) AS NUM_ALUMNI
+        FROM EMPLOYMENT
+        GROUP BY EMPLOYERNAME, INDUSTRY
+        ORDER BY NUM_ALUMNI DESC, EMPLOYERNAME
+    """
+    return pd.read_sql(sql, engine)
 
 def get_contributions_for_alumni(alumni_id: int) -> pd.DataFrame:
     sql = text(
@@ -304,7 +289,6 @@ def get_contributions_for_alumni(alumni_id: int) -> pd.DataFrame:
         """
     )
     return pd.read_sql(sql, engine, params={"aid": alumni_id})
-
 
 def get_campaigns() -> pd.DataFrame:
     return pd.read_sql("SELECT * FROM CAMPAIGN", engine)
