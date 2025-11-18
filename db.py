@@ -345,51 +345,40 @@ def update_alumni_contact(alumni_id: int, email: str, phone: str, mailing_list: 
 # -------------------------------------------------------------------
 def get_summary_stats():
     """Aggregates used by the admin dashboard metrics."""
+    # --- totals we can safely get directly with SQL ---
     with engine.begin() as conn:
         total_alumni = conn.execute(
             text("SELECT COUNT(*) FROM ALUMNI")
-        ).scalar()
-
-        total_employers = conn.execute(
-            text("SELECT COUNT(DISTINCT EMPLOYERNAME) FROM EMPLOYMENT")
-        ).scalar()
+        ).scalar() or 0
 
         active_campaigns = conn.execute(
             text("SELECT COUNT(*) FROM CAMPAIGN WHERE STATUS = 'Active'")
-        ).scalar()
+        ).scalar() or 0
 
         total_contributions = conn.execute(
             text("SELECT COALESCE(SUM(AMOUNT), 0) FROM CONTRIBUTION")
-        ).scalar()
+        ).scalar() or 0.0
+
+    # --- total employers: use pandas so we don't depend on a specific schema ---
+    try:
+        emp_df = pd.read_sql("SELECT * FROM EMPLOYMENT", engine)
+
+        if emp_df.empty:
+            total_employers = 0
+        elif "EMPLOYERNAME" in emp_df.columns:
+            # ideal case: count distinct employers by name
+            total_employers = emp_df["EMPLOYERNAME"].nunique()
+        else:
+            # fallback: if the column name is different in your older DB,
+            # at least count distinct alumni that have any employment row
+            total_employers = emp_df["ALUMNIID"].nunique()
+    except Exception:
+        # if table doesn't exist or anything else goes wrong, don't crash the app
+        total_employers = 0
 
     return {
-        "total_alumni": total_alumni or 0,
-        "total_employers": total_employers or 0,
-        "total_campaigns": active_campaigns or 0,
-        "total_contributions": total_contributions or 0.0,
+        "total_alumni": int(total_alumni),
+        "total_employers": int(total_employers),
+        "total_campaigns": int(active_campaigns),
+        "total_contributions": float(total_contributions),
     }
-
-
-def get_employer_summary() -> pd.DataFrame:
-    """
-    Returns: EMPLOYERNAME | INDUSTRY | NUM_ALUMNI
-    Uses pandas groupby so it works cleanly on SQLite.
-    """
-    emp_df = pd.read_sql("SELECT * FROM EMPLOYMENT", engine)
-
-    if emp_df.empty:
-        return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
-
-    grouped = (
-        emp_df.groupby(["EMPLOYERNAME", "INDUSTRY"])["ALUMNIID"]
-        .nunique()
-        .reset_index(name="NUM_ALUMNI")
-    )
-
-    return grouped[["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"]]
-
-
-# -------------------------------------------------------------------
-#  Initialize DB when module is imported
-# -------------------------------------------------------------------
-init_db()
