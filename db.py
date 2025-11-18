@@ -385,53 +385,41 @@ def get_all_contributions() -> pd.DataFrame:
 def get_employer_summary() -> pd.DataFrame:
     """
     Return a summary of how many alumni work at each employer.
-
     Defensive: if the EMPLOYMENT table or needed columns are missing,
     returns an empty DataFrame instead of crashing.
     """
-    # First, verify that the EMPLOYMENT table actually exists
+    # Step 1 — Make sure EMPLOYMENT table exists
     try:
         with engine.begin() as conn:
             row = conn.exec_driver_sql(
-                "SELECT name FROM sqlite_master "
-                "WHERE type='table' AND name='EMPLOYMENT';"
+                """
+                SELECT name FROM sqlite_master
+                WHERE type='table' AND name='EMPLOYMENT';
+                """
             ).fetchone()
+
         if not row:
-            # Table doesn't exist in this DB file
             return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
+
     except Exception:
-        # Any failure talking to SQLite – just fail soft
         return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
 
-    # Now try to read the table
+    # Step 2 — Run the summary query
+    sql = """
+        SELECT
+            EMPLOYERNAME,
+            INDUSTRY,
+            COUNT(DISTINCT ALUMNIID) AS NUM_ALUMNI
+        FROM EMPLOYMENT
+        GROUP BY EMPLOYERNAME, INDUSTRY
+        ORDER BY NUM_ALUMNI DESC;
+    """
+
     try:
-        # Only pull the columns we care about
-        emp = pd.read_sql("SELECT EMPLOYERNAME, INDUSTRY FROM EMPLOYMENT", engine)
+        df = pd.read_sql(sql, engine)
+        return df
     except Exception:
-        # Problem reading the table or columns – fail soft
         return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
-
-    # If there are no rows, return an empty summary
-    if emp.empty:
-        return pd.DataFrame(columns=["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"])
-
-    # Group by employer (and industry if present) to count alumni
-    group_cols = ["EMPLOYERNAME"]
-    if "INDUSTRY" in emp.columns:
-        group_cols.append("INDUSTRY")
-
-    summary = (
-        emp.groupby(group_cols)
-           .size()
-           .reset_index(name="NUM_ALUMNI")
-           .sort_values("NUM_ALUMNI", ascending=False)
-    )
-
-    # Ensure INDUSTRY column exists for the Streamlit display
-    if "INDUSTRY" not in summary.columns:
-        summary["INDUSTRY"] = "Unknown"
-
-    return summary[["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"]]
 
 def get_summary_stats() -> dict:
     """
