@@ -303,7 +303,6 @@ def get_employer_summary() -> pd.DataFrame:
 
     return grouped[["EMPLOYERNAME", "INDUSTRY", "NUM_ALUMNI"]]
 
-
 # -------------------------------------------------------------------
 # Initialize DB on import
 # -------------------------------------------------------------------
