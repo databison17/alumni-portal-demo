@@ -320,47 +320,61 @@ def create_contribution(
         )
 
 
-def get_summary_stats() -> dict:
-    """Basic counts for the admin dashboard."""
-    with engine.begin() as conn:
-        total_alumni = conn.execute(text("SELECT COUNT(*) FROM ALUMNI")).scalar() or 0
-        total_employers = (
-            conn.execute(
-                text("SELECT COUNT(DISTINCT EMPLOYERNAME) FROM EMPLOYMENT")
-            ).scalar()
-            or 0
-        )
-        total_campaigns = conn.execute(text("SELECT COUNT(*) FROM CAMPAIGN")).scalar() or 0
-        total_contributions = (
-            conn.execute(text("SELECT COALESCE(SUM(AMOUNT), 0) FROM CONTRIBUTION")).scalar()
-            or 0.0
-        )
+def get_summary_stats():
+    """Return small aggregate numbers for the admin dashboard.
+    This version is defensive so the app won't crash even if a table
+    or column is missing in the SQLite file.
+    """
+    from sqlalchemy import text
 
-    return {
-        "total_alumni": int(total_alumni),
-        "total_employers": int(total_employers),
-        "total_campaigns": int(total_campaigns),
-        "total_contributions": float(total_contributions),
+    totals = {
+        "total_alumni": 0,
+        "total_employers": 0,
+        "total_campaigns": 0,
+        "total_contributions": 0.0,
     }
 
+    with engine.begin() as conn:
+        # Total Alumni
+        try:
+            totals["total_alumni"] = (
+                conn.execute(text("SELECT COUNT(*) FROM ALUMNI")).scalar() or 0
+            )
+        except Exception:
+            totals["total_alumni"] = 0
 
-def get_employer_summary() -> pd.DataFrame:
-    """
-    Employer drill-down for the admin dashboard:
-    how many alumni per employer.
-    """
-    sql = text(
-        """
-        SELECT
-            EMPLOYERNAME,
-            COUNT(*) AS NUM_ALUMNI
-        FROM EMPLOYMENT
-        GROUP BY EMPLOYERNAME
-        ORDER BY NUM_ALUMNI DESC, EMPLOYERNAME
-        """
-    )
-    return pd.read_sql(sql, engine)
+        # Total distinct employers (EMPLOYERNAME column in EMPLOYMENT table)
+        try:
+            totals["total_employers"] = (
+                conn.execute(
+                    text("SELECT COUNT(DISTINCT EMPLOYERNAME) FROM EMPLOYMENT")
+                ).scalar()
+                or 0
+            )
+        except Exception:
+            # If table/column is missing, just show 0 so the dashboard still works
+            totals["total_employers"] = 0
 
+        # Total campaigns
+        try:
+            totals["total_campaigns"] = (
+                conn.execute(text("SELECT COUNT(*) FROM CAMPAIGN")).scalar() or 0
+            )
+        except Exception:
+            totals["total_campaigns"] = 0
+
+        # Sum of all contributions
+        try:
+            totals["total_contributions"] = (
+                conn.execute(
+                    text("SELECT COALESCE(SUM(AMOUNT), 0) FROM CONTRIBUTION")
+                ).scalar()
+                or 0.0
+            )
+        except Exception:
+            totals["total_contributions"] = 0.0
+
+    return totals
 
 def get_all_contributions() -> pd.DataFrame:
     """
