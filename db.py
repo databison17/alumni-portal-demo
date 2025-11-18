@@ -298,7 +298,6 @@ def create_contribution(alumni_id: int, campaign_id: int, amount: float, date_st
             },
         )
 
-
 def get_all_contributions() -> pd.DataFrame:
     sql = """
         SELECT
@@ -328,24 +327,29 @@ def get_employer_summary() -> pd.DataFrame:
     """
     return pd.read_sql(sql, engine)
 
-
 def get_summary_stats() -> dict:
     """Aggregates used by the admin dashboard metrics."""
-    # --- totals we can safely get directly with SQL ---
     with engine.begin() as conn:
         total_alumni = conn.execute(
             text("SELECT COUNT(*) FROM ALUMNI")
         ).scalar() or 0
 
-        active_campaigns = conn.execute(
-            text("SELECT COUNT(*) FROM CAMPAIGN WHERE STATUS = 'Active'")
-        ).scalar() or 0
+        # NEW: be robust if CAMPAIGN.STATUS doesn't exist
+        try:
+            active_campaigns = conn.execute(
+                text("SELECT COUNT(*) FROM CAMPAIGN WHERE STATUS = 'Active'")
+            ).scalar() or 0
+        except Exception:
+            # Fallback: just count all campaigns
+            active_campaigns = conn.execute(
+                text("SELECT COUNT(*) FROM CAMPAIGN")
+            ).scalar() or 0
 
         total_contributions = conn.execute(
             text("SELECT COALESCE(SUM(AMOUNT), 0) FROM CONTRIBUTION")
         ).scalar() or 0.0
 
-    # --- total employers: use pandas so we don't depend on a specific schema ---
+    # Employers via pandas (unchanged)
     try:
         emp_df = pd.read_sql("SELECT * FROM EMPLOYMENT", engine)
 
