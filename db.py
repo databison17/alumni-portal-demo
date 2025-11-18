@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, text
 # Database setup
 # ---------------------------------------------
 
-DB_PATH = Path("alumni.db")
+DB_PATH = Path("alumni_v2.db")
 engine = create_engine(f"sqlite:///{DB_PATH}", echo=False, future=True)
 
 
