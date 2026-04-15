@@ -1,4 +1,6 @@
 import datetime
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -48,98 +50,246 @@ VALID_USERS = {
     },
 }
 
+LOGO_PATH = Path("howard_logo.png")
+
 # ---------------------------------------------------------
 # CUSTOM STYLING
 # ---------------------------------------------------------
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
+        .stApp {
+            background-color: #f5f7fb;
+        }
 
-/* Background */
-.stApp {
-    background-color: #f6f8fb;
-}
+        .block-container {
+            max-width: 1400px;
+            padding-top: 1.2rem;
+            padding-bottom: 2rem;
+        }
 
-/* Header (Hero Card) */
-.hero-card {
-    background: linear-gradient(135deg, #003A63 0%, #00558C 100%);
-    color: white;
-    border-radius: 18px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 58, 99, 0.25);
-}
+        h1, h2, h3 {
+            color: #003A63;
+        }
 
-/* Section Cards */
-.section-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1rem;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    border-left: 5px solid #003A63;
-    margin-bottom: 1rem;
-}
+        .hero-card {
+            background: linear-gradient(135deg, #003A63 0%, #0a4d81 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 1.6rem 1.8rem;
+            box-shadow: 0 10px 24px rgba(0, 58, 99, 0.20);
+            margin-bottom: 1rem;
+        }
 
-/* KPI Cards */
-.kpi-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1rem;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    border-top: 5px solid #E51937;
-    text-align: center;
-}
+        .hero-title {
+            color: white;
+            font-size: 2.7rem;
+            font-weight: 700;
+            line-height: 1.05;
+            margin-bottom: 0.4rem;
+        }
 
-/* KPI Text */
-.kpi-label {
-    color: #6b7280;
-    font-size: 0.9rem;
-}
+        .hero-subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
 
-.kpi-value {
-    color: #003A63;
-    font-size: 2rem;
-    font-weight: bold;
-}
+        .hero-accent {
+            height: 5px;
+            width: 90px;
+            background: #E51937;
+            border-radius: 999px;
+            margin-bottom: 0.85rem;
+        }
 
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #003A63 0%, #002A4A 100%);
-}
+        .section-card {
+            background: white;
+            border-radius: 18px;
+            padding: 1.15rem 1.15rem 0.95rem 1.15rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+            border-left: 5px solid #003A63;
+            margin-bottom: 1rem;
+        }
 
-/* Buttons */
-.stButton>button {
-    background-color: #E51937;
-    color: white;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-}
+        .section-card h2,
+        .section-card h3 {
+            margin-top: 0.1rem;
+            margin-bottom: 0.75rem;
+        }
 
-.stButton>button:hover {
-    background-color: #c9152f;
-    color: white;
-}
+        .kpi-card {
+            background: white;
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+            border-top: 5px solid #E51937;
+            min-height: 115px;
+            text-align: center;
+        }
 
-/* Links */
-a {
-    color: #E51937 !important;
-    font-weight: 500;
-}
+        .kpi-label {
+            color: #667085;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
 
-/* Profile chips */
-.profile-chip {
-    background: #fff0f2;
-    color: #E51937;
-    border: 1px solid #ffd5db;
-}
+        .kpi-value {
+            color: #003A63;
+            font-size: 2rem;
+            font-weight: 800;
+        }
 
-/* Headers */
-h1, h2, h3 {
-    color: #003A63;
-}
+        .profile-chip {
+            display: inline-block;
+            background: #fff2f4;
+            color: #E51937;
+            border: 1px solid #ffd1d9;
+            border-radius: 999px;
+            padding: 0.33rem 0.75rem;
+            margin-right: 0.4rem;
+            margin-bottom: 0.45rem;
+            font-size: 0.9rem;
+        }
 
-</style>
-""", unsafe_allow_html=True)
+        .muted-text {
+            color: #5f6b7a;
+            font-size: 0.95rem;
+            line-height: 1.65;
+        }
+
+        .welcome-list {
+            color: #334155;
+            font-size: 0.98rem;
+            line-height: 1.9;
+            margin-top: 0.35rem;
+        }
+
+        .account-block {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+            color: #334155;
+            font-size: 0.97rem;
+        }
+
+        .account-title {
+            color: #E51937;
+            font-weight: 700;
+        }
+
+        .small-note {
+            color: #667085;
+            font-size: 0.9rem;
+        }
+
+        .info-divider {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 0.5rem 0 1rem 0;
+        }
+
+        .paypal-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
+            border: 1px solid #dbe7f3;
+            border-left: 5px solid #E51937;
+            border-radius: 18px;
+            padding: 1.1rem;
+            margin-top: 0.75rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .paypal-button {
+            display: inline-block;
+            background-color: #0070ba;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            border: none;
+        }
+
+        .paypal-button:hover {
+            background-color: #005ea6;
+            color: white !important;
+        }
+
+        /* SIDEBAR FIXES */
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #003A63 0%, #002b49 100%);
+        }
+
+        [data-testid="stSidebar"] * {
+            color: #ffffff !important;
+        }
+
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] div {
+            color: #ffffff !important;
+        }
+
+        [data-testid="stSidebar"] .stMarkdown,
+        [data-testid="stSidebar"] .stCaption,
+        [data-testid="stSidebar"] .stText {
+            color: #ffffff !important;
+        }
+
+        [data-testid="stSidebar"] input {
+            color: #ffffff !important;
+        }
+
+        [data-testid="stSidebar"] .stTextInput input,
+        [data-testid="stSidebar"] .stSelectbox div,
+        [data-testid="stSidebar"] .stRadio div {
+            color: #ffffff !important;
+        }
+
+        [data-testid="stSidebar"] .stTextInput label,
+        [data-testid="stSidebar"] .stSelectbox label,
+        [data-testid="stSidebar"] .stRadio label {
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        .sidebar-header {
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 0.85rem 0.9rem;
+            margin-bottom: 0.8rem;
+            color: white !important;
+            line-height: 1.7;
+            font-size: 0.96rem;
+        }
+
+        .stButton > button {
+            background-color: #E51937;
+            color: white;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+        }
+
+        .stButton > button:hover {
+            background-color: #c6132d;
+            color: white;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ---------------------------------------------------------
 # SESSION STATE
 # ---------------------------------------------------------
@@ -150,27 +300,10 @@ if "username" not in st.session_state:
 if "alumni_id" not in st.session_state:
     st.session_state.alumni_id = None
 
+
 # ---------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------
-def render_top_brand():
-    left, right = st.columns([6, 1])
-    with left:
-        st.markdown(
-            """
-            <div class="hero-card">
-                <h1 style="margin-bottom: 0.2rem; color: white;">Howard University Alumni Portal</h1>
-                <div style="font-size: 1rem; opacity: 0.95;">
-                    A centralized alumni subsystem for records management, engagement, reporting, and contributions.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with right:
-        st.empty()
-
-
 def render_kpi_card(label: str, value: str):
     st.markdown(
         f"""
@@ -196,12 +329,45 @@ def alumni_name_from_df(df: pd.DataFrame, alumni_id: int) -> str:
     return f"{row['FIRSTNAME']} {row['LASTNAME']}"
 
 
+def render_top_brand():
+    col1, col2 = st.columns([1.1, 5])
+
+    with col1:
+        if LOGO_PATH.exists():
+            st.image(str(LOGO_PATH), use_container_width=True)
+        else:
+            st.markdown(
+                """
+                <div class="section-card" style="text-align:center; padding:1rem;">
+                    <h3 style="margin:0;">HU</h3>
+                    <div class="small-note">Logo not found</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    with col2:
+        st.markdown(
+            """
+            <div class="hero-card">
+                <div class="hero-title">Howard University Alumni Portal</div>
+                <div class="hero-accent"></div>
+                <div class="hero-subtitle">
+                    A centralized alumni subsystem for records management, engagement,
+                    reporting, and contributions.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
 def render_alumni_summary(alum: pd.Series):
     st.markdown(
         f"""
         <div class="section-card">
-            <h2 style="margin-bottom: 0.35rem;">{alum['FIRSTNAME']} {alum['LASTNAME']}</h2>
-            <div class="small-muted" style="margin-bottom: 0.65rem;">
+            <h2 style="margin-bottom: 0.45rem;">{alum['FIRSTNAME']} {alum['LASTNAME']}</h2>
+            <div class="muted-text" style="margin-bottom: 0.85rem;">
                 Howard University School of Business Alumni Profile
             </div>
             <span class="profile-chip">Email: {alum['PRIMARYEMAIL']}</span>
@@ -239,6 +405,7 @@ def render_alumni_profile(alumni_id: int):
             st.write(f"**Phone:** {alum['PHONE'] or 'N/A'}")
             st.write(f"**Mailing List Opt-In:** {alum['MAILING_LIST']}")
             render_section_close()
+
         with c2:
             render_section_open("Academic Snapshot")
             st.write(f"**Major:** {alum['GRAD_MAJOR'] or 'N/A'}")
@@ -251,7 +418,10 @@ def render_alumni_profile(alumni_id: int):
         if deg_df.empty:
             st.info("No degree records available.")
         else:
-            display_cols = [c for c in ["MAJOR", "MINOR", "SCHOOL", "HONORS", "GRADMONTH", "GRADYEAR"] if c in deg_df.columns]
+            display_cols = [
+                c for c in ["MAJOR", "MINOR", "SCHOOL", "HONORS", "GRADMONTH", "GRADYEAR"]
+                if c in deg_df.columns
+            ]
             st.dataframe(deg_df[display_cols], use_container_width=True, hide_index=True)
         render_section_close()
 
@@ -262,7 +432,7 @@ def render_alumni_profile(alumni_id: int):
             st.info("No employment records available.")
         else:
             st.dataframe(emp_df, use_container_width=True, hide_index=True)
-            st.caption("This view supports employer tracking, networking, and alumni career analytics.")
+            st.caption("This supports employer tracking, networking, and alumni career analytics.")
         render_section_close()
 
     with tab_memberships:
@@ -275,7 +445,7 @@ def render_alumni_profile(alumni_id: int):
         render_section_close()
 
     with tab_contributions:
-        render_section_open("Contributions")
+        render_section_open("Contribution History")
         cont_df = get_contributions_for_alumni(alumni_id)
         if cont_df.empty:
             st.info("No contribution history available.")
@@ -288,48 +458,11 @@ def render_alumni_profile(alumni_id: int):
 
 
 def render_login():
-    st.sidebar.markdown('<div class="sidebar-title">Portal Access</div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div class="sidebar-header">Portal Access</div>', unsafe_allow_html=True)
+
     role = st.sidebar.selectbox("I am logging in as", ["Student", "Admin", "Alumni"])
     username = st.sidebar.text_input("Username")
     password = st.sidebar.text_input("Password", type="password")
-
-    render_top_brand()
-
-    left, right = st.columns([1.15, 1])
-    with left:
-        st.markdown(
-            """
-            <div class="section-card">
-                <h2>Welcome</h2>
-                <p class="small-muted">
-                    This portal demonstrates a university alumni subsystem that supports:
-                </p>
-                <ul>
-                    <li>Centralized alumni records</li>
-                    <li>Employment and membership tracking</li>
-                    <li>Contribution and campaign management</li>
-                    <li>Mailing lists and reporting support</li>
-                </ul>
-                <p class="small-muted">
-                    Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user.
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with right:
-        st.markdown(
-            """
-            <div class="section-card">
-                <h3>Demo Accounts</h3>
-                <p><b>Admin</b><br>Username: admin<br>Password: HUSB2024!</p>
-                <p><b>Student</b><br>Username: mily.lopez@bison.howard.edu<br>Password: 001234567</p>
-                <p><b>Alumni</b><br>Username: maya.johnson@email.com<br>Password: Maya2024!</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
     if st.sidebar.button("Enter Portal", use_container_width=True):
         user = VALID_USERS.get(username)
@@ -338,7 +471,65 @@ def render_login():
             st.session_state.username = username
             st.session_state.alumni_id = user.get("alumni_id")
             st.rerun()
-        st.sidebar.error("Invalid credentials for this role.")
+        else:
+            st.sidebar.error("Invalid credentials for this role.")
+
+    render_top_brand()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown(
+            """
+            <div class="section-card">
+                <h2 style="color:#003A63;">Welcome</h2>
+                <p class="muted-text">
+                    This portal demonstrates a <b>Howard University Alumni Subsystem</b>
+                    designed to support:
+                </p>
+
+                <ul class="welcome-list">
+                    <li>🎓 Centralized alumni records</li>
+                    <li>💼 Employment and membership tracking</li>
+                    <li>💰 Contribution and campaign management</li>
+                    <li>📊 Mailing lists and reporting support</li>
+                </ul>
+
+                <p class="small-note">
+                    Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col2:
+        st.markdown(
+            """
+            <div class="section-card">
+                <h3 style="color:#003A63;">Demo Accounts</h3>
+
+                <div class="account-block">
+                    <span class="account-title">Admin</span><br>
+                    Username: admin<br>
+                    Password: HUSB2024!
+                </div>
+
+                <div class="account-block">
+                    <span class="account-title">Student</span><br>
+                    Username: mily.lopez@bison.howard.edu<br>
+                    Password: 001234567
+                </div>
+
+                <div class="account-block">
+                    <span class="account-title">Alumni</span><br>
+                    Username: maya.johnson@email.com<br>
+                    Password: Maya2024!
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.stop()
 
@@ -350,12 +541,18 @@ if st.session_state.user_role is None:
     render_login()
 
 # ---------------------------------------------------------
-# SIDEBAR
+# SIDEBAR AFTER LOGIN
 # ---------------------------------------------------------
-st.sidebar.markdown('<div class="sidebar-title">Session</div>', unsafe_allow_html=True)
-st.sidebar.write(f"Logged in as **{st.session_state.user_role}**")
-if st.session_state.username:
-    st.sidebar.caption(st.session_state.username)
+st.sidebar.markdown('<div class="sidebar-header">Session</div>', unsafe_allow_html=True)
+st.sidebar.markdown(
+    f"""
+    <div class="sidebar-box">
+        <b>Logged in as:</b> {st.session_state.user_role}<br>
+        <b>User:</b> {st.session_state.username}
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 if st.sidebar.button("Log Out", use_container_width=True):
     st.session_state.user_role = None
@@ -363,26 +560,29 @@ if st.sidebar.button("Log Out", use_container_width=True):
     st.session_state.alumni_id = None
     st.rerun()
 
-st.sidebar.markdown("---")
+st.sidebar.markdown('<div class="sidebar-header">Navigate</div>', unsafe_allow_html=True)
 
 if st.session_state.user_role == "Admin":
     page = st.sidebar.radio(
-        "Navigate",
+        "",
         ["Dashboard", "Alumni Directory", "Alumni Profile", "Reports"],
+        label_visibility="collapsed",
     )
 elif st.session_state.user_role == "Alumni":
     page = st.sidebar.radio(
-        "Navigate",
+        "",
         ["My Profile & Updates", "Make a Contribution", "Alumni Directory"],
+        label_visibility="collapsed",
     )
 else:
     page = st.sidebar.radio(
-        "Navigate",
+        "",
         ["Alumni Directory"],
+        label_visibility="collapsed",
     )
 
 # ---------------------------------------------------------
-# MAIN HEADER
+# MAIN BRAND
 # ---------------------------------------------------------
 render_top_brand()
 
@@ -403,7 +603,7 @@ if page == "Dashboard":
     with c4:
         render_kpi_card("Total Contributions", f"${stats['total_contributions']:,.0f}")
 
-    st.markdown("<div class='divider-space'></div>", unsafe_allow_html=True)
+    st.markdown("<hr class='info-divider'>", unsafe_allow_html=True)
 
     left, right = st.columns([1.2, 1])
 
@@ -422,6 +622,7 @@ if page == "Dashboard":
                 )
                 trend = trend.set_index("CONTRIBUTIONDATE")
                 st.line_chart(trend["AMOUNT"], use_container_width=True)
+
             st.dataframe(contrib_df, use_container_width=True, hide_index=True)
         render_section_close()
 
@@ -434,9 +635,9 @@ if page == "Dashboard":
             st.dataframe(emp_summary, use_container_width=True, hide_index=True)
         render_section_close()
 
-    render_section_open("Administrative Use")
+    render_section_open("Dashboard Purpose")
     st.write(
-        "This dashboard gives administrators a quick overview of alumni records, employer reach, campaign activity, and contribution totals."
+        "This dashboard gives administrators a quick overview of alumni records, campaign activity, employer reach, and contribution totals."
     )
     render_section_close()
 
@@ -449,12 +650,15 @@ elif page == "Alumni Directory":
     else:
         render_section_open("Search and Filter")
         c1, c2, c3 = st.columns(3)
+
         with c1:
-            search_name = st.text_input("Search by last name")
+            search_name = st.text_input("Search by first or last name")
         with c2:
             search_major = st.text_input("Search by major")
         with c3:
-            grad_years = ["All"] + sorted(alumni_df["ALUM_GRADYEAR"].dropna().astype(int).unique().tolist())
+            grad_years = ["All"] + sorted(
+                alumni_df["ALUM_GRADYEAR"].dropna().astype(int).unique().tolist()
+            )
             selected_grad_year = st.selectbox("Graduation year", grad_years)
 
         filtered = alumni_df.copy()
@@ -473,7 +677,11 @@ elif page == "Alumni Directory":
         if selected_grad_year != "All":
             filtered = filtered[filtered["ALUM_GRADYEAR"] == selected_grad_year]
 
-        display_cols = [c for c in ["ALUMNIID", "FIRSTNAME", "LASTNAME", "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR"] if c in filtered.columns]
+        display_cols = [
+            c for c in
+            ["ALUMNIID", "FIRSTNAME", "LASTNAME", "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR"]
+            if c in filtered.columns
+        ]
         st.dataframe(filtered[display_cols], use_container_width=True, hide_index=True)
         render_section_close()
 
@@ -520,14 +728,20 @@ elif page == "Reports":
 
         mail_df = alumni_df.copy()
         if major_filter:
-            mail_df = mail_df[mail_df["GRAD_MAJOR"].str.contains(major_filter, case=False, na=False)]
+            mail_df = mail_df[
+                mail_df["GRAD_MAJOR"].str.contains(major_filter, case=False, na=False)
+            ]
         if year_filter != "All":
             mail_df = mail_df[mail_df["ALUM_GRADYEAR"] == year_filter]
 
         if mail_df.empty:
             st.info("No mailing list results for the selected filters.")
         else:
-            export_cols = [c for c in ["FIRSTNAME", "LASTNAME", "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR", "MAILING_LIST"] if c in mail_df.columns]
+            export_cols = [
+                c for c in
+                ["FIRSTNAME", "LASTNAME", "PRIMARYEMAIL", "ALUM_GRADYEAR", "GRAD_MAJOR", "MAILING_LIST"]
+                if c in mail_df.columns
+            ]
             st.dataframe(mail_df[export_cols], use_container_width=True, hide_index=True)
             csv = mail_df[export_cols].to_csv(index=False).encode("utf-8")
             st.download_button(
@@ -570,7 +784,8 @@ elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
             alum = alum_df.iloc[0]
             render_alumni_summary(alum)
 
-            c1, c2 = st.columns([1.1, 1])
+            c1, c2 = st.columns([1.15, 1])
+
             with c1:
                 render_section_open("Update Contact Information")
                 with st.form("update_contact_form"):
@@ -590,8 +805,10 @@ elif page == "My Profile & Updates" and st.session_state.user_role == "Alumni":
                 render_section_close()
 
             with c2:
-                render_section_open("Profile Summary")
-                st.write("Keep your alumni record current so the university can maintain accurate outreach, networking, and fundraising information.")
+                render_section_open("Why This Matters")
+                st.write(
+                    "Keeping alumni information current supports better communication, networking, engagement, and fundraising accuracy."
+                )
                 render_section_close()
 
             render_alumni_profile(int(aid))
@@ -609,52 +826,124 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
             render_alumni_summary(alum)
 
         campaigns = get_campaigns()
-        if campaigns.empty:
-            st.info("There are no active campaigns available right now.")
+
+        render_section_open("Give Back to Howard University")
+        st.write(
+            "Alumni can support scholarships, student success initiatives, and other approved university causes through this donation area."
+        )
+
+        donation_type = st.selectbox(
+            "Choose what you would like to support",
+            [
+                "Scholarship Fund",
+                "Student Emergency Support",
+                "Study Abroad Support",
+                "General Alumni Giving",
+                "Existing Campaign",
+                "Specific Student / Custom Purpose",
+            ],
+        )
+
+        custom_note = ""
+        if donation_type == "Existing Campaign":
+            if campaigns.empty:
+                st.info("No campaigns are available at the moment.")
+                selected_campaign_label = None
+                selected_campaign_id = None
+            else:
+                camp_lookup = {
+                    f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(row["CAMPAIGNID"])
+                    for _, row in campaigns.iterrows()
+                }
+                selected_campaign_label = st.selectbox("Select a campaign", list(camp_lookup.keys()))
+                selected_campaign_id = camp_lookup[selected_campaign_label]
         else:
-            render_section_open("Support Howard University")
-            st.write("Select a campaign and contribution amount below.")
+            selected_campaign_label = donation_type
+            selected_campaign_id = None
 
-            camp_lookup = {
-                f"{row['CAMPAIGNNAME']} (Goal ${row['GOALAMOUNT']:,.0f})": int(row["CAMPAIGNID"])
-                for _, row in campaigns.iterrows()
-            }
-
-            c1, c2 = st.columns(2)
-            with c1:
-                selected_campaign = st.selectbox("Campaign", list(camp_lookup.keys()))
-            with c2:
-                amount = st.number_input("Contribution Amount ($)", min_value=5.0, step=5.0)
-
-            st.markdown("### PayPal Donation Link")
-            paypal_url = (
-                "https://www.paypal.com/donate?"
-                f"amount={int(amount)}&business=YOUR_PAYPAL_BUSINESS_ID"
+        if donation_type == "Specific Student / Custom Purpose":
+            custom_note = st.text_area(
+                "Enter the student name, scholarship name, or custom giving purpose",
+                placeholder="Example: Manuel Ray Lopez Scholarship / Senior Leadership Scholarship / Emergency support for a student initiative",
             )
 
-            st.markdown(
-                f"""
-                <a href="{paypal_url}" target="_blank">
-                    <button style="padding:10px 20px; border-radius:10px; background-color:#0070ba; color:white; border:none; font-size:16px; cursor:pointer;">
-                        Donate with PayPal
-                    </button>
-                </a>
-                """,
-                unsafe_allow_html=True,
+        col1, col2 = st.columns(2)
+        with col1:
+            amount = st.number_input("Contribution Amount ($)", min_value=5.0, step=5.0)
+        with col2:
+            donor_name = st.text_input(
+                "Display Name",
+                value=f"{alum['FIRSTNAME']} {alum['LASTNAME']}" if not alum_df.empty else "",
             )
 
-            st.info(
-                "After completing the payment, click the button below to record the contribution in the university database."
+        purpose_text = selected_campaign_label if selected_campaign_label else donation_type
+        if custom_note.strip():
+            purpose_text = f"{purpose_text} - {custom_note.strip()}"
+
+        st.markdown(
+            f"""
+            <div class="paypal-card">
+                <h3 style="margin-bottom:0.4rem;">PayPal Donation</h3>
+                <p class="muted-text" style="margin-bottom:0.8rem;">
+                    <b>Donor:</b> {donor_name}<br>
+                    <b>Purpose:</b> {purpose_text}<br>
+                    <b>Amount:</b> ${amount:,.2f}
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        PAYPAL_BUSINESS_ID = "YOUR_PAYPAL_BUSINESS_ID"
+
+        paypal_url = (
+            "https://www.paypal.com/donate"
+            f"?business={PAYPAL_BUSINESS_ID}"
+            f"&amount={amount:.2f}"
+            f"&item_name={purpose_text.replace(' ', '%20')}"
+            f"&currency_code=USD"
+        )
+
+        st.markdown(
+            f"""
+            <a href="{paypal_url}" target="_blank" class="paypal-button">
+                💳 Donate with PayPal
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.info(
+            "After completing payment in PayPal, return here and record the contribution in the alumni database for reporting and campaign tracking."
+        )
+
+        if st.button("Record Contribution in Alumni Database", use_container_width=True):
+            date_str = datetime.date.today().isoformat()
+
+            if selected_campaign_id is None:
+                if not campaigns.empty:
+                    selected_campaign_id = int(campaigns.iloc[0]["CAMPAIGNID"])
+                else:
+                    st.error("No campaign exists in the database to attach this contribution to.")
+                    st.stop()
+
+            create_contribution(
+                int(aid),
+                int(selected_campaign_id),
+                float(amount),
+                date_str,
             )
+            st.success("Thank you. Your contribution has been recorded successfully.")
+            st.balloons()
 
-            if st.button("Record Contribution in Alumni Database", use_container_width=True):
-                date_str = datetime.date.today().isoformat()
-                create_contribution(int(aid), camp_lookup[selected_campaign], float(amount), date_str)
-                st.success("Thank you. Your contribution has been recorded successfully.")
-                st.balloons()
+        render_section_close()
 
-            render_section_close()
-
-            render_section_open("My Contribution History")
-            render_alumni_profile(int(aid))
-            render_section_close()
+        render_section_open("My Contribution History")
+        cont_df = get_contributions_for_alumni(int(aid))
+        if cont_df.empty:
+            st.info("No contribution history available yet.")
+        else:
+            st.dataframe(cont_df, use_container_width=True, hide_index=True)
+            total = float(cont_df["AMOUNT"].sum()) if "AMOUNT" in cont_df.columns else 0.0
+            st.success(f"Total Contributions: ${total:,.2f}")
+        render_section_close()
