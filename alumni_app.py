@@ -51,108 +51,95 @@ VALID_USERS = {
 # ---------------------------------------------------------
 # CUSTOM STYLING
 # ---------------------------------------------------------
-st.markdown(
-    """
-    <style>
-        .stApp {
-            background-color: #f6f8fb;
-        }
+st.markdown("""
+<style>
 
-        .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 2rem;
-            max-width: 1400px;
-        }
+/* Background */
+.stApp {
+    background-color: #f6f8fb;
+}
 
-        h1, h2, h3 {
-            color: #002147;
-        }
+/* Header (Hero Card) */
+.hero-card {
+    background: linear-gradient(135deg, #003A63 0%, #00558C 100%);
+    color: white;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 58, 99, 0.25);
+}
 
-        .hero-card {
-            background: linear-gradient(135deg, #002147 0%, #123b73 100%);
-            color: white;
-            border-radius: 18px;
-            padding: 1.4rem 1.6rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 8px 24px rgba(0, 33, 71, 0.18);
-        }
+/* Section Cards */
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-left: 5px solid #003A63;
+    margin-bottom: 1rem;
+}
 
-        .section-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem 1rem 0.75rem 1rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-            border: 1px solid #edf1f7;
-            margin-bottom: 1rem;
-        }
+/* KPI Cards */
+.kpi-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-top: 5px solid #E51937;
+    text-align: center;
+}
 
-        .kpi-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem 1rem 0.75rem 1rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-            border: 1px solid #edf1f7;
-            min-height: 120px;
-        }
+/* KPI Text */
+.kpi-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
 
-        .kpi-label {
-            color: #5b6575;
-            font-size: 0.95rem;
-            margin-bottom: 0.3rem;
-        }
+.kpi-value {
+    color: #003A63;
+    font-size: 2rem;
+    font-weight: bold;
+}
 
-        .kpi-value {
-            color: #002147;
-            font-size: 1.85rem;
-            font-weight: 700;
-        }
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #003A63 0%, #002A4A 100%);
+}
 
-        .profile-chip {
-            display: inline-block;
-            background: #eef4ff;
-            color: #123b73;
-            border: 1px solid #d8e5ff;
-            border-radius: 999px;
-            padding: 0.25rem 0.7rem;
-            margin-right: 0.45rem;
-            margin-bottom: 0.45rem;
-            font-size: 0.9rem;
-        }
+/* Buttons */
+.stButton>button {
+    background-color: #E51937;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+}
 
-        .small-muted {
-            color: #667085;
-            font-size: 0.92rem;
-        }
+.stButton>button:hover {
+    background-color: #c9152f;
+    color: white;
+}
 
-        .sidebar-title {
-            color: white;
-            font-weight: 700;
-            font-size: 1.05rem;
-        }
+/* Links */
+a {
+    color: #E51937 !important;
+    font-weight: 500;
+}
 
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #002147 0%, #0d2f5c 100%);
-        }
+/* Profile chips */
+.profile-chip {
+    background: #fff0f2;
+    color: #E51937;
+    border: 1px solid #ffd5db;
+}
 
-        [data-testid="stSidebar"] * {
-            color: white !important;
-        }
+/* Headers */
+h1, h2, h3 {
+    color: #003A63;
+}
 
-        [data-testid="stSidebar"] .stSelectbox label,
-        [data-testid="stSidebar"] .stRadio label,
-        [data-testid="stSidebar"] .stTextInput label {
-            color: white !important;
-        }
-
-        .divider-space {
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
+</style>
+""", unsafe_allow_html=True)
 # ---------------------------------------------------------
 # SESSION STATE
 # ---------------------------------------------------------
