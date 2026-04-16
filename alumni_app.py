@@ -55,6 +55,7 @@ VALID_USERS = {
 st.markdown(
     """
     <style>
+        /* ---------- APP ---------- */
         .stApp {
             background-color: #f5f7fb;
         }
@@ -64,13 +65,12 @@ st.markdown(
             padding-top: 1.2rem;
             padding-bottom: 2rem;
         }
-        
 
+        /* ---------- GLOBAL TEXT ---------- */
         p, li, ul, ol, span, div, label {
             color: #1f2937 !important;
         }
 
-        /* Headings */
         h1, h2, h3, h4, h5, h6,
         [data-testid="stMarkdownContainer"] h1,
         [data-testid="stMarkdownContainer"] h2,
@@ -83,7 +83,7 @@ st.markdown(
             font-weight: 800 !important;
         }
 
-        /* Hero */
+        /* ---------- HERO ---------- */
         .hero-card {
             background: linear-gradient(135deg, #003A63 0%, #0a4d81 100%);
             color: white !important;
@@ -115,7 +115,7 @@ st.markdown(
             margin-bottom: 0.85rem;
         }
 
-        /* Cards */
+        /* ---------- CARDS ---------- */
         .section-card {
             background: white;
             border-radius: 18px;
@@ -141,7 +141,7 @@ st.markdown(
             color: #1f2937 !important;
         }
 
-        /* KPI cards */
+        /* ---------- KPI CARDS ---------- */
         .kpi-card {
             background: white;
             border-radius: 18px;
@@ -164,6 +164,7 @@ st.markdown(
             font-weight: 800 !important;
         }
 
+        /* ---------- PROFILE CHIPS ---------- */
         .profile-chip {
             display: inline-block;
             background: #fff2f4;
@@ -176,6 +177,7 @@ st.markdown(
             font-size: 0.9rem;
         }
 
+        /* ---------- MISC ---------- */
         .muted-text {
             color: #4b5563 !important;
             font-size: 0.95rem;
@@ -193,18 +195,40 @@ st.markdown(
             margin: 0.5rem 0 1rem 0;
         }
 
-        /* Labels */
-        label, .stSelectbox label, .stTextInput label, .stTextArea label,
-        .stNumberInput label, .stRadio label, .stCheckbox label {
+        /* ---------- INPUTS / SELECTS ---------- */
+        label, .stSelectbox label, .stTextInput label,
+        .stTextArea label, .stNumberInput label,
+        .stRadio label, .stCheckbox label {
             color: #003A63 !important;
             font-weight: 700 !important;
         }
 
         input, textarea {
             color: #111827 !important;
+            background-color: white !important;
         }
 
-        /* Tabs */
+        input::placeholder,
+        textarea::placeholder {
+            color: #6b7280 !important;
+            opacity: 1 !important;
+        }
+
+        .stTextInput input,
+        .stTextArea textarea,
+        .stNumberInput input {
+            color: #111827 !important;
+            background-color: white !important;
+        }
+
+        .stSelectbox div[data-baseweb="select"] > div,
+        .stSelectbox div[data-baseweb="select"] span,
+        [data-baseweb="select"] * {
+            color: #111827 !important;
+            background-color: white !important;
+        }
+
+        /* ---------- TABS ---------- */
         button[data-baseweb="tab"] {
             color: #374151 !important;
             font-weight: 700 !important;
@@ -214,14 +238,14 @@ st.markdown(
             color: #003A63 !important;
         }
 
-        /* Tables and alerts */
+        /* ---------- TABLES / ALERTS ---------- */
         .stDataFrame, .stTable,
         .stDataFrame div, .stTable div,
         [data-testid="stAlertContainer"] * {
             color: #111827 !important;
         }
 
-        /* Paypal */
+        /* ---------- PAYPAL ---------- */
         .paypal-card {
             background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
             border: 1px solid #dbe7f3;
@@ -250,91 +274,18 @@ st.markdown(
             color: white !important;
         }
 
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #003A63 0%, #002b49 100%);
-        }
-
-       st.markdown(
-    """
-    <style>
-        /* ---------- APP ---------- */
-        .stApp {
-            background-color: #f5f7fb;
-        }
-
-        .block-container {
-            max-width: 1400px;
-            padding-top: 1.2rem;
-            padding-bottom: 2rem;
-        }
-
-        /* ---------- GLOBAL TEXT ---------- */
-        h1, h2, h3, h4, h5, h6 {
-            color: #003A63 !important;
-            font-weight: 800 !important;
-        }
-
-        p, li, span, div {
-            color: #1f2937;
-        }
-
-        /* ---------- HERO ---------- */
-        .hero-card {
-            background: linear-gradient(135deg, #003A63 0%, #0a4d81 100%);
+        /* ---------- BUTTONS ---------- */
+        .stButton > button {
+            background-color: #E51937;
             color: white !important;
-            border-radius: 20px;
-            padding: 1.6rem 1.8rem;
-            box-shadow: 0 10px 24px rgba(0, 58, 99, 0.20);
-            margin-bottom: 1rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
         }
 
-        .hero-title {
+        .stButton > button:hover {
+            background-color: #c6132d;
             color: white !important;
-            font-size: 2.7rem;
-            font-weight: 700 !important;
-            line-height: 1.05;
-            margin-bottom: 0.4rem;
-        }
-
-        .hero-subtitle {
-            color: rgba(255,255,255,0.95) !important;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .hero-accent {
-            height: 5px;
-            width: 90px;
-            background: #E51937;
-            border-radius: 999px;
-            margin-bottom: 0.85rem;
-        }
-
-        /* ---------- CARDS ---------- */
-        .section-card {
-            background: white;
-            border-radius: 18px;
-            padding: 1.2rem;
-            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
-            border-left: 6px solid #E51937;
-            margin-bottom: 1rem;
-        }
-
-        .section-card h2,
-        .section-card h3,
-        .section-card h4 {
-            color: #003A63 !important;
-            font-weight: 800 !important;
-        }
-
-        .muted-text {
-            color: #4b5563 !important;
-        }
-
-        .small-note,
-        .stCaption {
-            color: #6b7280 !important;
         }
 
         /* ---------- SIDEBAR ---------- */
@@ -355,121 +306,8 @@ st.markdown(
         }
 
         .sidebar-box {
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 12px;
-            padding: 0.85rem 0.9rem;
-            margin-bottom: 0.85rem;
-            color: #ffffff !important;
-            line-height: 1.75;
-            font-size: 0.96rem;
-        }
-
-        /* Sidebar labels */
-        [data-testid="stSidebar"] label {
-            color: #ffffff !important;
-            font-weight: 700 !important;
-            opacity: 1 !important;
-        }
-
-        /* Sidebar markdown/text */
-        [data-testid="stSidebar"] .stMarkdown p,
-        [data-testid="stSidebar"] .stMarkdown div,
-        [data-testid="stSidebar"] .stRadio p,
-        [data-testid="stSidebar"] .stRadio span {
-            color: #ffffff !important;
-        }
-
-        /* ---------- INPUTS / SELECTS ---------- */
-        input, textarea {
-            color: #111827 !important;
-            background-color: white !important;
-        }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #6b7280 !important;
-            opacity: 1 !important;
-        }
-
-        .stTextInput input,
-        .stTextArea textarea,
-        .stNumberInput input {
-            color: #111827 !important;
-            background-color: white !important;
-        }
-
-        /* THE IMPORTANT FIX FOR SELECTBOX VALUES */
-        .stSelectbox div[data-baseweb="select"] > div {
-            color: #111827 !important;
-            background-color: white !important;
-        }
-
-        .stSelectbox div[data-baseweb="select"] span {
-            color: #111827 !important;
-        }
-
-        [data-baseweb="select"] * {
-            color: #111827 !important;
-        }
-
-        /* Sidebar inputs/selects specifically */
-        [data-testid="stSidebar"] input,
-        [data-testid="stSidebar"] textarea {
-            color: #111827 !important;
-            background-color: white !important;
-        }
-
-        [data-testid="stSidebar"] [data-baseweb="select"] *,
-        [data-testid="stSidebar"] .stSelectbox *,
-        [data-testid="stSidebar"] .stTextInput * {
-            color: #111827 !important;
-        }
-
-        /* But keep sidebar labels white */
-        [data-testid="stSidebar"] .sidebar-header,
-        [data-testid="stSidebar"] .sidebar-box,
-        [data-testid="stSidebar"] label,
-        [data-testid="stSidebar"] .stMarkdown p,
-        [data-testid="stSidebar"] .stMarkdown div,
-        [data-testid="stSidebar"] .stRadio p,
-        [data-testid="stSidebar"] .stRadio span {
-            color: #ffffff !important;
-        }
-
-        /* ---------- BUTTONS ---------- */
-        .stButton > button {
-            background-color: #E51937;
-            color: white !important;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-        }
-
-        .stButton > button:hover {
-            background-color: #c6132d;
-            color: white !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-        .sidebar-header {
-            display: block;
-            background: #E51937;
-            color: #ffffff !important;
-            font-weight: 800;
-            font-size: 1rem;
-            padding: 0.6rem 0.85rem;
-            border-radius: 10px;
-            margin: 0.35rem 0 0.6rem 0;
-            letter-spacing: 0.2px;
-        }
-
-        .sidebar-box {
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 12px;
             padding: 0.85rem 0.9rem;
             margin-bottom: 0.85rem;
@@ -484,6 +322,10 @@ st.markdown(
             opacity: 1 !important;
         }
 
+        [data-testid="stSidebar"] .stMarkdown p,
+        [data-testid="stSidebar"] .stMarkdown div,
+        [data-testid="stSidebar"] .stRadio p,
+        [data-testid="stSidebar"] .stRadio span,
         [data-testid="stSidebar"] [role="radiogroup"] label p,
         [data-testid="stSidebar"] [role="radiogroup"] label span,
         [data-testid="stSidebar"] .stRadio label p,
@@ -493,74 +335,18 @@ st.markdown(
             opacity: 1 !important;
         }
 
-        /* Buttons */
-        .stButton > button {
-            background-color: #E51937;
-            color: white !important;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-        }
-
-        .stButton > button:hover {
-            background-color: #c6132d;
-            color: white !important;
+        /* Sidebar inputs use dark text on white bg */
+        [data-testid="stSidebar"] input,
+        [data-testid="stSidebar"] textarea,
+        [data-testid="stSidebar"] [data-baseweb="select"] *,
+        [data-testid="stSidebar"] .stSelectbox *,
+        [data-testid="stSidebar"] .stTextInput * {
+            color: #111827 !important;
         }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-/* ---------- FIX LOGIN VISIBILITY BUG ---------- */
-
-/* Input text */
-input, textarea {
-    color: #111827 !important;
-    background-color: white !important;
-}
-
-/* Placeholder text */
-input::placeholder,
-textarea::placeholder {
-    color: #6b7280 !important;
-    opacity: 1 !important;
-}
-
-/* Streamlit text inputs specifically */
-.stTextInput input,
-.stTextArea textarea,
-.stNumberInput input {
-    color: #111827 !important;
-    background-color: white !important;
-}
-
-/* Labels above inputs */
-label, .stTextInput label, .stTextArea label, .stSelectbox label {
-    color: #003A63 !important;
-    font-weight: 700 !important;
-}
-
-/* Fix selectbox text */
-.stSelectbox div {
-    color: #111827 !important;
-}
-
-/* Fix dropdown selected text */
-[data-baseweb="select"] div {
-    color: #111827 !important;
-}
-
-/* Fix sidebar inputs specifically */
-[data-testid="stSidebar"] input,
-[data-testid="stSidebar"] textarea {
-    color: #111827 !important;
-    background-color: white !important;
-}
-
-/* Fix login button visibility */
-.stButton > button {
-    color: white !important;
-}
 
 # ---------------------------------------------------------
 # SESSION STATE
