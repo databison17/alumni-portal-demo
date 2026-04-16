@@ -500,6 +500,7 @@ def render_login():
         st.write("**Username:** maya.johnson@email.com")
         st.write("**Password:** Maya2024!")
 
+st.stop()
 
 # ---------------------------------------------------------
 # AUTH
