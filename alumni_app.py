@@ -339,7 +339,7 @@ def render_alumni_summary(alum: pd.Series):
     st.markdown(
         f"""
         <div class="section-card">
-            <h2 style="margin-bottom: 0.45rem; color:#003A63; font-weight:800;">
+            <h2 style="margin-bottom: 0.45rem; color:#003A63 !important; font-weight:800;">
                 {alum['FIRSTNAME']} {alum['LASTNAME']}
             </h2>
             <div class="muted-text" style="margin-bottom: 0.85rem;">
@@ -357,7 +357,6 @@ def render_alumni_summary(alum: pd.Series):
 
     if "LINKEDIN" in alum.index and alum["LINKEDIN"]:
         st.markdown(f"[View LinkedIn Profile]({alum['LINKEDIN']})")
-
 
 def render_alumni_profile(alumni_id: int):
     alum_df = get_alumni_by_id(alumni_id)
