@@ -428,9 +428,9 @@ def render_login():
     render_top_brand()
 
     col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown(
+    
+    with col1:
+        st.markdown(
         """
         <div class="section-card">
             <h2>Welcome</h2>
