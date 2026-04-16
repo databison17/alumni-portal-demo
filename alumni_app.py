@@ -217,77 +217,68 @@ st.markdown(
         }
 
         /* SIDEBAR */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #003A63 0%, #002b49 100%);
-}
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #003A63 0%, #002b49 100%);
+        }
 
-/* force all general sidebar text white */
-[data-testid="stSidebar"] * {
-    color: #ffffff !important;
-}
+        [data-testid="stSidebar"] * {
+            color: #ffffff !important;
+        }
 
-/* make sidebar section headers very visible */
-.sidebar-header {
-    display: block;
-    background: #E51937;
-    color: #ffffff !important;
-    font-weight: 800;
-    font-size: 1rem;
-    padding: 0.6rem 0.85rem;
-    border-radius: 10px;
-    margin: 0.35rem 0 0.6rem 0;
-    letter-spacing: 0.2px;
-}
+        .sidebar-header {
+            display: block;
+            background: #E51937;
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 1rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 10px;
+            margin: 0.35rem 0 0.6rem 0;
+            letter-spacing: 0.2px;
+        }
 
-/* boxed session info */
-.sidebar-box {
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 12px;
-    padding: 0.85rem 0.9rem;
-    margin-bottom: 0.85rem;
-    color: #ffffff !important;
-    line-height: 1.75;
-    font-size: 0.96rem;
-}
+        .sidebar-box {
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 0.85rem 0.9rem;
+            margin-bottom: 0.85rem;
+            color: #ffffff !important;
+            line-height: 1.75;
+            font-size: 0.96rem;
+        }
 
-/* labels above inputs */
-[data-testid="stSidebar"] label {
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    opacity: 1 !important;
-}
+        [data-testid="stSidebar"] label {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            opacity: 1 !important;
+        }
 
-/* text input + select text */
-[data-testid="stSidebar"] input,
-[data-testid="stSidebar"] textarea {
-    color: #111827 !important;
-}
+        [data-testid="stSidebar"] [role="radiogroup"] label p,
+        [data-testid="stSidebar"] [role="radiogroup"] label span,
+        [data-testid="stSidebar"] .stRadio label p,
+        [data-testid="stSidebar"] .stRadio label span {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+        }
 
-/* radio option text */
-[data-testid="stSidebar"] [role="radiogroup"] label p,
-[data-testid="stSidebar"] [role="radiogroup"] label span,
-[data-testid="stSidebar"] .stRadio label p,
-[data-testid="stSidebar"] .stRadio label span {
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    opacity: 1 !important;
-}
+        .stButton > button {
+            background-color: #E51937;
+            color: white;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+        }
 
-/* selectbox displayed value */
-[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] *,
-[data-testid="stSidebar"] .stTextInput * {
-    opacity: 1 !important;
-}
-
-/* captions and helper text */
-[data-testid="stSidebar"] .stCaption,
-[data-testid="stSidebar"] .stMarkdown,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div {
-    color: #ffffff !important;
-}
+        .stButton > button:hover {
+            background-color: #c6132d;
+            color: white;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ---------------------------------------------------------
 # SESSION STATE
@@ -459,9 +450,9 @@ def render_alumni_profile(alumni_id: int):
 def render_login():
     st.sidebar.markdown('<div class="sidebar-header">Portal Access</div>', unsafe_allow_html=True)
 
-role = st.sidebar.selectbox("I am logging in as", ["Student", "Admin", "Alumni"])
-username = st.sidebar.text_input("Username")
-password = st.sidebar.text_input("Password", type="password")
+    role = st.sidebar.selectbox("I am logging in as", ["Student", "Admin", "Alumni"])
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
 
     if st.sidebar.button("Enter Portal", use_container_width=True):
         user = VALID_USERS.get(username)
