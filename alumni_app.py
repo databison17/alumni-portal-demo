@@ -466,62 +466,39 @@ def render_login():
 
     render_top_brand()
 
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
     with col1:
+        st.markdown("## Welcome")
+        st.write(
+            "This portal demonstrates a Howard University Alumni Subsystem designed to support:"
+        )
         st.markdown(
             """
-            <div class="section-card">
-                <h2 style="color:#003A63;">Welcome</h2>
-                <p class="muted-text">
-                    This portal demonstrates a <b>Howard University Alumni Subsystem</b>
-                    designed to support:
-                </p>
-
-                <ul class="welcome-list">
-                    <li>🎓 Centralized alumni records</li>
-                    <li>💼 Employment and membership tracking</li>
-                    <li>💰 Contribution and campaign management</li>
-                    <li>📊 Mailing lists and reporting support</li>
-                </ul>
-
-                <p class="small-note">
-                    Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user.
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True,
+- Centralized alumni records  
+- Employment and membership tracking  
+- Contribution and campaign management  
+- Mailing lists and reporting support
+            """
+        )
+        st.caption(
+            "Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user."
         )
 
     with col2:
-        st.markdown(
-            """
-            <div class="section-card">
-                <h3 style="color:#003A63;">Demo Accounts</h3>
+        st.markdown("## Demo Accounts")
 
-                <div class="account-block">
-                    <span class="account-title">Admin</span><br>
-                    Username: admin<br>
-                    Password: HUSB2024!
-                </div>
+        st.markdown("### Admin")
+        st.write("**Username:** admin")
+        st.write("**Password:** HUSB2024!")
 
-                <div class="account-block">
-                    <span class="account-title">Student</span><br>
-                    Username: mily.lopez@bison.howard.edu<br>
-                    Password: 001234567
-                </div>
+        st.markdown("### Student")
+        st.write("**Username:** mily.lopez@bison.howard.edu")
+        st.write("**Password:** 001234567")
 
-                <div class="account-block">
-                    <span class="account-title">Alumni</span><br>
-                    Username: maya.johnson@email.com<br>
-                    Password: Maya2024!
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    st.stop()
+        st.markdown("### Alumni")
+        st.write("**Username:** maya.johnson@email.com")
+        st.write("**Password:** Maya2024!")
 
 
 # ---------------------------------------------------------
