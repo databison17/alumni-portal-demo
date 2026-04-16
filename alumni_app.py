@@ -35,7 +35,7 @@ init_db()
 # ---------------------------------------------------------
 VALID_USERS = {
     "admin": {
-        "password": "HUSB2024!",
+        "password": "HUSB2026!",
         "role": "Admin",
     },
     "mily.lopez@bison.howard.edu": {
@@ -43,7 +43,7 @@ VALID_USERS = {
         "role": "Student",
     },
     "maya.johnson@email.com": {
-        "password": "Maya2024!",
+        "password": "Maya2026!",
         "role": "Alumni",
         "alumni_id": 1001,
     },
@@ -64,11 +64,7 @@ st.markdown(
             padding-top: 1.2rem;
             padding-bottom: 2rem;
         }
-
-        /* Global text readability */
-        html, body, [class*="css"] {
-            color: #1f2937;
-        }
+        
 
         p, li, ul, ol, span, div, label {
             color: #1f2937 !important;
@@ -319,6 +315,57 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+/* ---------- FIX LOGIN VISIBILITY BUG ---------- */
+
+/* Input text */
+input, textarea {
+    color: #111827 !important;
+    background-color: white !important;
+}
+
+/* Placeholder text */
+input::placeholder,
+textarea::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Streamlit text inputs specifically */
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input {
+    color: #111827 !important;
+    background-color: white !important;
+}
+
+/* Labels above inputs */
+label, .stTextInput label, .stTextArea label, .stSelectbox label {
+    color: #003A63 !important;
+    font-weight: 700 !important;
+}
+
+/* Fix selectbox text */
+.stSelectbox div {
+    color: #111827 !important;
+}
+
+/* Fix dropdown selected text */
+[data-baseweb="select"] div {
+    color: #111827 !important;
+}
+
+/* Fix sidebar inputs specifically */
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea {
+    color: #111827 !important;
+    background-color: white !important;
+}
+
+/* Fix login button visibility */
+.stButton > button {
+    color: white !important;
+}
+
 # ---------------------------------------------------------
 # SESSION STATE
 # ---------------------------------------------------------
@@ -519,7 +566,7 @@ def render_login():
 
         st.markdown("**Admin**")
         st.write("Username: admin")
-        st.write("Password: HUSB2024!")
+        st.write("Password: HUSB2026!")
 
         st.markdown("**Student**")
         st.write("Username: mily.lopez@bison.howard.edu")
@@ -527,7 +574,7 @@ def render_login():
 
         st.markdown("**Alumni**")
         st.write("Username: maya.johnson@email.com")
-        st.write("Password: Maya2024!")
+        st.write("Password: Maya2026!")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
