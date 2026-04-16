@@ -101,13 +101,13 @@ st.markdown(
         }
 
         .section-card {
-            background: white;
-            border-radius: 18px;
-            padding: 1.15rem 1.15rem 0.95rem 1.15rem;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-            border-left: 5px solid #003A63;
-            margin-bottom: 1rem;
-        }
+    background: white;
+    border-radius: 18px;
+    padding: 1.4rem;
+    box-shadow: 0 10px 25px rgba(0, 58, 99, 0.10);
+    border-left: 6px solid #E51937;
+    margin-bottom: 1rem;
+}
 
         .section-card h2,
         .section-card h3 {
@@ -429,37 +429,58 @@ def render_login():
 
     col1, col2 = st.columns(2)
 
-    with col1:
-        st.markdown("## Welcome")
-        st.write(
-            "This portal demonstrates a Howard University Alumni Subsystem designed to support:"
-        )
-        st.markdown(
-            """
-- Centralized alumni records  
-- Employment and membership tracking  
-- Contribution and campaign management  
-- Mailing lists and reporting support
-            """
-        )
-        st.caption(
-            "Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user."
-        )
+   with col1:
+    st.markdown(
+        """
+        <div class="section-card">
+            <h2>Welcome</h2>
+            <p class="muted-text">
+                This portal demonstrates a Howard University Alumni Subsystem designed to support:
+            </p>
+
+            <ul style="line-height:1.8; font-weight:500;">
+                <li>Centralized alumni records</li>
+                <li>Employment and membership tracking</li>
+                <li>Contribution and campaign management</li>
+                <li>Mailing lists and reporting support</li>
+            </ul>
+
+            <p class="small-note">
+                Use the sidebar to enter the demo portal as an Admin, Student, or Alumni user.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     with col2:
-        st.markdown("## Demo Accounts")
+    st.markdown(
+        """
+        <div class="section-card">
+            <h2>Demo Accounts</h2>
 
-        st.markdown("### Admin")
-        st.write("**Username:** admin")
-        st.write("**Password:** HUSB2026!")
+            <div style="margin-bottom:12px;">
+                <b style="color:#003A63;">Admin</b><br>
+                <span class="muted-text">Username:</span> admin<br>
+                <span class="muted-text">Password:</span> HUSB2026!
+            </div>
 
-        st.markdown("### Student")
-        st.write("**Username:** mily.lopez@bison.howard.edu")
-        st.write("**Password:** 001234567")
+            <div style="margin-bottom:12px;">
+                <b style="color:#003A63;">Student</b><br>
+                <span class="muted-text">Username:</span> mily.lopez@bison.howard.edu<br>
+                <span class="muted-text">Password:</span> 001234567
+            </div>
 
-        st.markdown("### Alumni")
-        st.write("**Username:** maya.johnson@email.com")
-        st.write("**Password:** Maya2026!")
+            <div>
+                <b style="color:#003A63;">Alumni</b><br>
+                <span class="muted-text">Username:</span> maya.johnson@email.com<br>
+                <span class="muted-text">Password:</span> Maya2026!
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.stop()
 
