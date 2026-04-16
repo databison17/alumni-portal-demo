@@ -35,7 +35,7 @@ init_db()
 # ---------------------------------------------------------
 VALID_USERS = {
     "admin": {
-        "password": "HUSB2026!",
+        "password": "HUSB2024!",
         "role": "Admin",
     },
     "mily.lopez@bison.howard.edu": {
@@ -43,7 +43,7 @@ VALID_USERS = {
         "role": "Student",
     },
     "maya.johnson@email.com": {
-        "password": "Maya2026!",
+        "password": "Maya2024!",
         "role": "Alumni",
         "alumni_id": 1001,
     },
@@ -65,20 +65,21 @@ st.markdown(
             padding-bottom: 2rem;
         }
 
-        /* MAIN TITLES AND HEADINGS */
-        h1, h2, h3, h4 {
-            color: #003A63 !important;
-            font-weight: 800 !important;
+        /* Global text readability */
+        html, body, [class*="css"] {
+            color: #1f2937;
         }
 
+        p, li, ul, ol, span, div, label {
+            color: #1f2937 !important;
+        }
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6,
         [data-testid="stMarkdownContainer"] h1,
         [data-testid="stMarkdownContainer"] h2,
         [data-testid="stMarkdownContainer"] h3,
-        [data-testid="stMarkdownContainer"] h4 {
-            color: #003A63 !important;
-            font-weight: 800 !important;
-        }
-
+        [data-testid="stMarkdownContainer"] h4,
         div[data-testid="stHeading"] h1,
         div[data-testid="stHeading"] h2,
         div[data-testid="stHeading"] h3 {
@@ -86,9 +87,10 @@ st.markdown(
             font-weight: 800 !important;
         }
 
+        /* Hero */
         .hero-card {
             background: linear-gradient(135deg, #003A63 0%, #0a4d81 100%);
-            color: white;
+            color: white !important;
             border-radius: 20px;
             padding: 1.6rem 1.8rem;
             box-shadow: 0 10px 24px rgba(0, 58, 99, 0.20);
@@ -98,7 +100,7 @@ st.markdown(
         .hero-title {
             color: white !important;
             font-size: 2.7rem;
-            font-weight: 700;
+            font-weight: 700 !important;
             line-height: 1.05;
             margin-bottom: 0.4rem;
         }
@@ -117,6 +119,7 @@ st.markdown(
             margin-bottom: 0.85rem;
         }
 
+        /* Cards */
         .section-card {
             background: white;
             border-radius: 18px;
@@ -135,6 +138,14 @@ st.markdown(
             margin-bottom: 0.75rem;
         }
 
+        .section-card p,
+        .section-card li,
+        .section-card span,
+        .section-card div {
+            color: #1f2937 !important;
+        }
+
+        /* KPI cards */
         .kpi-card {
             background: white;
             border-radius: 18px;
@@ -146,21 +157,21 @@ st.markdown(
         }
 
         .kpi-label {
-            color: #667085;
+            color: #667085 !important;
             font-size: 0.95rem;
             margin-bottom: 0.3rem;
         }
 
         .kpi-value {
-            color: #003A63;
+            color: #003A63 !important;
             font-size: 2rem;
-            font-weight: 800;
+            font-weight: 800 !important;
         }
 
         .profile-chip {
             display: inline-block;
             background: #fff2f4;
-            color: #E51937;
+            color: #E51937 !important;
             border: 1px solid #ffd1d9;
             border-radius: 999px;
             padding: 0.33rem 0.75rem;
@@ -170,22 +181,51 @@ st.markdown(
         }
 
         .muted-text {
-            color: #5f6b7a;
+            color: #4b5563 !important;
             font-size: 0.95rem;
             line-height: 1.65;
         }
 
-        .small-note {
-            color: #667085;
+        .small-note, .stCaption {
+            color: #6b7280 !important;
             font-size: 0.9rem;
         }
 
         .info-divider {
             border: none;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #d1d5db;
             margin: 0.5rem 0 1rem 0;
         }
 
+        /* Labels */
+        label, .stSelectbox label, .stTextInput label, .stTextArea label,
+        .stNumberInput label, .stRadio label, .stCheckbox label {
+            color: #003A63 !important;
+            font-weight: 700 !important;
+        }
+
+        input, textarea {
+            color: #111827 !important;
+        }
+
+        /* Tabs */
+        button[data-baseweb="tab"] {
+            color: #374151 !important;
+            font-weight: 700 !important;
+        }
+
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #003A63 !important;
+        }
+
+        /* Tables and alerts */
+        .stDataFrame, .stTable,
+        .stDataFrame div, .stTable div,
+        [data-testid="stAlertContainer"] * {
+            color: #111827 !important;
+        }
+
+        /* Paypal */
         .paypal-card {
             background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
             border: 1px solid #dbe7f3;
@@ -214,7 +254,7 @@ st.markdown(
             color: white !important;
         }
 
-        /* SIDEBAR */
+        /* Sidebar */
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #003A63 0%, #002b49 100%);
         }
@@ -261,9 +301,10 @@ st.markdown(
             opacity: 1 !important;
         }
 
+        /* Buttons */
         .stButton > button {
             background-color: #E51937;
-            color: white;
+            color: white !important;
             border-radius: 10px;
             border: none;
             font-weight: 700;
@@ -271,7 +312,7 @@ st.markdown(
 
         .stButton > button:hover {
             background-color: #c6132d;
-            color: white;
+            color: white !important;
         }
     </style>
     """,
@@ -305,7 +346,7 @@ def render_kpi_card(label: str, value: str):
 
 def render_section_open(title: str):
     st.markdown(
-        f'<div class="section-card"><h3 style="color:#003A63; font-weight:800;">{title}</h3>',
+        f'<div class="section-card"><h3 style="color:#003A63 !important; font-weight:800;">{title}</h3>',
         unsafe_allow_html=True,
     )
 
@@ -357,6 +398,7 @@ def render_alumni_summary(alum: pd.Series):
 
     if "LINKEDIN" in alum.index and alum["LINKEDIN"]:
         st.markdown(f"[View LinkedIn Profile]({alum['LINKEDIN']})")
+
 
 def render_alumni_profile(alumni_id: int):
     alum_df = get_alumni_by_id(alumni_id)
@@ -477,7 +519,7 @@ def render_login():
 
         st.markdown("**Admin**")
         st.write("Username: admin")
-        st.write("Password: HUSB2026!")
+        st.write("Password: HUSB2024!")
 
         st.markdown("**Student**")
         st.write("Username: mily.lopez@bison.howard.edu")
@@ -485,7 +527,7 @@ def render_login():
 
         st.markdown("**Alumni**")
         st.write("Username: maya.johnson@email.com")
-        st.write("Password: Maya2026!")
+        st.write("Password: Maya2024!")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -837,7 +879,7 @@ elif page == "Make a Contribution" and st.session_state.user_role == "Alumni":
         st.markdown(
             f"""
             <div class="paypal-card">
-                <h3 style="margin-bottom:0.4rem; color:#003A63; font-weight:800;">PayPal Donation</h3>
+                <h3 style="margin-bottom:0.4rem; color:#003A63 !important; font-weight:800;">PayPal Donation</h3>
                 <p class="muted-text" style="margin-bottom:0.8rem;">
                     <b>Donor:</b> {donor_name}<br>
                     <b>Purpose:</b> {purpose_text}<br>
