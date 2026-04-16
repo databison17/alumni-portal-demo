@@ -454,7 +454,7 @@ with col1:
     )
 
     with col2:
-    st.markdown(
+        st.markdown(
         """
         <div class="section-card">
             <h2>Demo Accounts</h2>
