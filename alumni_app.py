@@ -1,5 +1,4 @@
 import datetime
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -36,7 +35,7 @@ init_db()
 # ---------------------------------------------------------
 VALID_USERS = {
     "admin": {
-        "password": "HUSB2024!",
+        "password": "HUSB2026!",
         "role": "Admin",
     },
     "mily.lopez@bison.howard.edu": {
@@ -44,13 +43,11 @@ VALID_USERS = {
         "role": "Student",
     },
     "maya.johnson@email.com": {
-        "password": "Maya2024!",
+        "password": "Maya2026!",
         "role": "Alumni",
         "alumni_id": 1001,
     },
 }
-
-LOGO_PATH = Path("howard_logo.png")
 
 # ---------------------------------------------------------
 # CUSTOM STYLING
@@ -301,36 +298,19 @@ def alumni_name_from_df(df: pd.DataFrame, alumni_id: int) -> str:
 
 
 def render_top_brand():
-    col1, col2 = st.columns([1.1, 5])
-
-    with col1:
-        if LOGO_PATH.exists():
-            st.image(str(LOGO_PATH), use_container_width=True)
-        else:
-            st.markdown(
-                """
-                <div class="section-card" style="text-align:center; padding:1rem;">
-                    <h3 style="margin:0;">HU</h3>
-                    <div class="small-note">Logo not found</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    with col2:
-        st.markdown(
-            """
-            <div class="hero-card">
-                <div class="hero-title">Howard University Alumni Portal</div>
-                <div class="hero-accent"></div>
-                <div class="hero-subtitle">
-                    A centralized alumni subsystem for records management, engagement,
-                    reporting, and contributions.
-                </div>
+    st.markdown(
+        """
+        <div class="hero-card">
+            <div class="hero-title">Howard University Alumni Portal</div>
+            <div class="hero-accent"></div>
+            <div class="hero-subtitle">
+                A centralized alumni subsystem for records management, engagement,
+                reporting, and contributions.
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_alumni_summary(alum: pd.Series):
@@ -471,7 +451,7 @@ def render_login():
 
         st.markdown("### Admin")
         st.write("**Username:** admin")
-        st.write("**Password:** HUSB2024!")
+        st.write("**Password:** HUSB2026!")
 
         st.markdown("### Student")
         st.write("**Username:** mily.lopez@bison.howard.edu")
@@ -479,7 +459,7 @@ def render_login():
 
         st.markdown("### Alumni")
         st.write("**Username:** maya.johnson@email.com")
-        st.write("**Password:** Maya2024!")
+        st.write("**Password:** Maya2026!")
 
     st.stop()
 
