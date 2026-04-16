@@ -158,25 +158,6 @@ st.markdown(
             line-height: 1.65;
         }
 
-        .welcome-list {
-            color: #334155;
-            font-size: 0.98rem;
-            line-height: 1.9;
-            margin-top: 0.35rem;
-        }
-
-        .account-block {
-            margin-bottom: 1rem;
-            line-height: 1.7;
-            color: #334155;
-            font-size: 0.97rem;
-        }
-
-        .account-title {
-            color: #E51937;
-            font-weight: 700;
-        }
-
         .small-note {
             color: #667085;
             font-size: 0.9rem;
@@ -500,7 +481,8 @@ def render_login():
         st.write("**Username:** maya.johnson@email.com")
         st.write("**Password:** Maya2024!")
 
-st.stop()
+    st.stop()
+
 
 # ---------------------------------------------------------
 # AUTH
